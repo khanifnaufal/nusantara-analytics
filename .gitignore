@@ -1,0 +1,11 @@
+# Environment variables
+.env
+.env.example
+
+# Executables
+*.exe
+*.out
+
+# Build artifacts
+/dist
+/build
