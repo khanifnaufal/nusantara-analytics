@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"time"
 
+	"indo-stats-backend/cache"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
@@ -21,6 +23,10 @@ func main() {
 	if err != nil {
 		log.Println("No .env file found")
 	}
+
+	// Initialize Cache
+	cache.Init()
+	log.Println("Cache initialized")
 
 	// Ambil PORT dari env
 	port := os.Getenv("PORT")
