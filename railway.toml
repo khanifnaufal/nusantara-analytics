@@ -1,0 +1,7 @@
+[build]
+builder = "dockerfile"
+
+[deploy]
+startCommand = "./main"
+healthcheckPath = "/api/v1/health"
+healthcheckTimeout = 30

@@ -3,21 +3,26 @@ package main
 import (
 	"log"
 	"os"
-	"strconv"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"indo-stats-backend/cache"
+	"indo-stats-backend/config"
 	"indo-stats-backend/handlers"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/joho/godotenv"
 )
 
+var startTime time.Time
+
+// main is the entry point of the application.
 func main() {
+	startTime = time.Now()
 	// Load env
 	err := godotenv.Load()
 
@@ -36,22 +41,6 @@ func main() {
 		port = "8080"
 	}
 
-	// Parse RATE_LIMIT_MAX
-	rateLimitMax := 60
-	if maxStr := os.Getenv("RATE_LIMIT_MAX"); maxStr != "" {
-		if val, err := strconv.Atoi(maxStr); err == nil {
-			rateLimitMax = val
-		}
-	}
-
-	// Parse RATE_LIMIT_WINDOW_SEC
-	rateLimitWindowSec := 60
-	if windowStr := os.Getenv("RATE_LIMIT_WINDOW_SEC"); windowStr != "" {
-		if val, err := strconv.Atoi(windowStr); err == nil {
-			rateLimitWindowSec = val
-		}
-	}
-
 	// Create Fiber app
 	app := fiber.New()
 
@@ -61,25 +50,15 @@ func main() {
 	// Middleware Logger
 	app.Use(logger.New())
 
+	allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
+	if allowedOrigins == "" {
+		allowedOrigins = "*"
+	}
+
 	// Middleware CORS
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
+		AllowOrigins: allowedOrigins,
 		AllowHeaders: "Origin, Content-Type, Accept",
-	}))
-
-	// Middleware Limiter
-	app.Use(limiter.New(limiter.Config{
-		Max:        rateLimitMax,
-		Expiration: time.Duration(rateLimitWindowSec) * time.Second,
-		KeyGenerator: func(c *fiber.Ctx) string {
-			return c.IP()
-		},
-		LimitReached: func(c *fiber.Ctx) error {
-			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
-				"error":       "too many requests",
-				"retry_after": strconv.Itoa(rateLimitWindowSec) + "s",
-			})
-		},
 	}))
 
 	// Route group
@@ -89,18 +68,36 @@ func main() {
 	// Health Check Route
 	v1.Get("/health", func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"status":  "ok",
-			"version": "1.0.0",
+			"status":            "ok",
+			"version":           "1.0.0",
+			"uptime":            time.Since(startTime).Round(time.Second).String(),
+			"cache_items_count": cache.ItemCount(),
+			"endpoints":         []string{"rates", "weather", "commodities", "market", "quakes"},
 		})
 	})
 
 	// Analytics Routes
-	v1.Get("/rates", handlers.GetRates)
-	v1.Get("/weather", handlers.GetWeather)
-	v1.Get("/commodities", handlers.GetCommodities)
-	v1.Get("/market", handlers.GetMarket)
-	v1.Get("/quakes", handlers.GetQuakes)
+	v1.Get("/rates", config.StrictLimiter, handlers.GetRates)
+	v1.Get("/weather", config.NormalLimiter, handlers.GetWeather)
+	v1.Get("/commodities", config.StrictLimiter, handlers.GetCommodities)
+	v1.Get("/market", config.StrictLimiter, handlers.GetMarket)
+	v1.Get("/quakes", config.NormalLimiter, handlers.GetQuakes)
 
-	// Start server
-	log.Fatal(app.Listen(":" + port))
+	// Start server in a goroutine
+	go func() {
+		if err := app.Listen(":" + port); err != nil {
+			log.Printf("Server Listen ended: %v", err)
+		}
+	}()
+
+	// Wait for termination signal
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	<-quit
+
+	log.Println("Shutting down server gracefully...")
+	if err := app.ShutdownWithTimeout(5 * time.Second); err != nil {
+		log.Printf("Graceful shutdown failed: %v", err)
+	}
+	log.Println("Server gracefully stopped")
 }

@@ -42,3 +42,9 @@ func Set(key string, value interface{}, ttl time.Duration) {
 func Delete(key string) {
 	c.Delete(key)
 }
+
+// ItemCount returns the number of items currently in the cache.
+func ItemCount() int {
+	return c.ItemCount()
+}
+
