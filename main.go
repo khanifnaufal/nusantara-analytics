@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"indo-stats-backend/cache"
+	"indo-stats-backend/handlers"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -92,6 +93,13 @@ func main() {
 			"version": "1.0.0",
 		})
 	})
+
+	// Analytics Routes
+	v1.Get("/rates", handlers.GetRates)
+	v1.Get("/weather", handlers.GetWeather)
+	v1.Get("/commodities", handlers.GetCommodities)
+	v1.Get("/market", handlers.GetMarket)
+	v1.Get("/quakes", handlers.GetQuakes)
 
 	// Start server
 	log.Fatal(app.Listen(":" + port))
