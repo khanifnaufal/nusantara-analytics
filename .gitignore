@@ -1,11 +1,4 @@
-# Environment variables
+node_modules/
 .env
-.env.example
-
-# Executables
 *.exe
-*.out
-
-# Build artifacts
-/dist
-/build
+dist/
