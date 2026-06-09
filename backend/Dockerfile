@@ -10,8 +10,7 @@ RUN go mod download
 # Copy the source code
 COPY . .
 
-# Build the application
-RUN go build -o main .
+RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 
 # Stage 2: Runtime image
 FROM alpine:latest
