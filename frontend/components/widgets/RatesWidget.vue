@@ -4,10 +4,18 @@ import { useRatesStore } from '~/stores/rates'
 import { usePolling } from '~/composables/usePolling'
 import { useExportCsv } from '~/composables/useExportCsv'
 
+const props = withDefaults(defineProps<{
+  disableAutoPoll?: boolean
+}>(), {
+  disableAutoPoll: false
+})
+
 const ratesStore = useRatesStore()
 
 // Auto-fetch and poll rates every 60s
-usePolling(() => ratesStore.fetchRates(), 60000)
+if (!props.disableAutoPoll) {
+  usePolling(() => ratesStore.fetchRates(), 60000)
+}
 
 // Currency metadata mapping
 interface CurrencyMeta {

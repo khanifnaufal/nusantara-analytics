@@ -2,10 +2,18 @@
 import { useWeatherStore } from '~/stores/weather'
 import { usePolling } from '~/composables/usePolling'
 
+const props = withDefaults(defineProps<{
+  disableAutoPoll?: boolean
+}>(), {
+  disableAutoPoll: false
+})
+
 const weatherStore = useWeatherStore()
 
 // Auto-fetch and poll weather every 60s
-usePolling(() => weatherStore.fetchWeather(), 60000)
+if (!props.disableAutoPoll) {
+  usePolling(() => weatherStore.fetchWeather(), 60000)
+}
 
 // Helper to determine weather emoji
 const getWeatherEmoji = (code: number, desc: string) => {

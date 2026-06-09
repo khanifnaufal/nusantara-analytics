@@ -2,10 +2,18 @@
 import { useQuakesStore } from '~/stores/quakes'
 import { usePolling } from '~/composables/usePolling'
 
+const props = withDefaults(defineProps<{
+  disableAutoPoll?: boolean
+}>(), {
+  disableAutoPoll: false
+})
+
 const quakesStore = useQuakesStore()
 
 // Auto-fetch and poll quakes every 60s
-usePolling(() => quakesStore.fetchQuakes(), 60000)
+if (!props.disableAutoPoll) {
+  usePolling(() => quakesStore.fetchQuakes(), 60000)
+}
 
 // Helper to determine relative time in Indonesian
 const formatRelativeTime = (timeStr: string) => {
@@ -89,7 +97,7 @@ const getMagnitudeStyle = (level: string) => {
     </div>
 
     <!-- Quakes List Container -->
-    <div class="max-h-[500px] overflow-y-auto pr-1 select-none custom-scrollbar">
+    <div class="pr-1 select-none">
       <!-- Loading Skeleton State -->
       <div v-if="quakesStore.loading && (!quakesStore.data || !quakesStore.data.quakes)" class="space-y-3 animate-pulse">
         <div v-for="n in 5" :key="'skeleton-quake-'+n" class="flex items-center gap-4 p-4 rounded-xl border border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/20">

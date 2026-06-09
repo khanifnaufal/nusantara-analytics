@@ -6,10 +6,18 @@ import { useExportCsv } from '~/composables/useExportCsv'
 import LineChart from '../charts/LineChart.vue'
 import AreaChart from '../charts/AreaChart.vue'
 
+const props = withDefaults(defineProps<{
+  disableAutoPoll?: boolean
+}>(), {
+  disableAutoPoll: false
+})
+
 const marketStore = useMarketStore()
 
 // Auto-fetch and poll market data every 60s
-usePolling(() => marketStore.fetchMarket(), 60000)
+if (!props.disableAutoPoll) {
+  usePolling(() => marketStore.fetchMarket(), 60000)
+}
 
 // Special formatter for stock index / prices
 const formatMarketPrice = (value: number, symbol: string) => {

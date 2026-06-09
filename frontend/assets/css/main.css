@@ -1,1 +1,17 @@
 @import "tailwindcss";
+
+html, body {
+  background-color: #020617;
+  color: #f1f5f9;
+}
+
+html {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+body, #__nuxt, #nuxt {
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}

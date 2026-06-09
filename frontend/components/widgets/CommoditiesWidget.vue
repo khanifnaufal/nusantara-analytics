@@ -5,10 +5,18 @@ import { usePolling } from "~/composables/usePolling";
 import { useExportCsv } from "~/composables/useExportCsv";
 import AreaChart from "../charts/AreaChart.vue";
 
+const props = withDefaults(defineProps<{
+  disableAutoPoll?: boolean
+}>(), {
+  disableAutoPoll: false
+})
+
 const commoditiesStore = useCommoditiesStore();
 
 // Auto-fetch and poll commodities every 60s
-usePolling(() => commoditiesStore.fetchCommodities(), 60000);
+if (!props.disableAutoPoll) {
+  usePolling(() => commoditiesStore.fetchCommodities(), 60000);
+}
 
 // Helper to format prices according to currency
 const formatPrice = (value: number, currency: string) => {
