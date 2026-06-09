@@ -8,5 +8,16 @@ export default defineNuxtConfig({
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8080'
     }
+  },
+  vite: {
+    optimizeDeps: {
+      include: [
+        'echarts/charts',
+        'echarts/components',
+        'echarts/core',
+        'echarts/renderers',
+        'vue-echarts'
+      ]
+    }
   }
 })
