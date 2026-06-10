@@ -80,15 +80,18 @@ const { exportCsv } = useExportCsv(csvData, 'pasar_saham_analytics')
 </script>
 
 <template>
-  <div class="relative w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 shadow-md transition-all duration-300 hover:shadow-lg backdrop-blur-md">
+  <div class="relative w-full overflow-hidden rounded-2xl border border-white/6 bg-bg-card p-5 md:p-6 transition-all duration-300 hover:border-violet-500/30 hover:shadow-[0_0_20px_rgba(167,139,250,0.08)]">
+    <!-- Gradient Accent Top Border -->
+    <div class="absolute top-0 left-0 h-1 w-full bg-linear-to-r from-violet-500 to-fuchsia-500"></div>
+
     <!-- Header -->
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between mb-6 mt-1">
       <div>
-        <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-          <span>🏛️</span> Bursa Saham Indonesia
+        <h3 class="text-base font-bold text-text-primary flex items-center gap-2">
+          <span class="text-violet-400">🏛️</span> Bursa Saham Indonesia
         </h3>
-        <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
-          Indeks Harga Saham Gabungan (IHSG) & Saham Unggulan • Update terakhir: {{ marketStore.data?.lastUpdated ? new Date(marketStore.data.lastUpdated).toLocaleString('id-ID') : '-' }}
+        <p class="text-xs text-text-tertiary mt-1">
+          Indeks Harga Saham Gabungan (IHSG) & Saham Unggulan • Update terakhir: {{ marketStore.data?.lastUpdated ? new Date(marketStore.data.lastUpdated).toLocaleTimeString('id-ID') : '-' }}
         </p>
       </div>
 
@@ -96,7 +99,7 @@ const { exportCsv } = useExportCsv(csvData, 'pasar_saham_analytics')
       <button
         @click="exportCsv()"
         :disabled="!marketStore.data?.stocks || marketStore.data.stocks.length === 0"
-        class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-white/5 bg-bg-subcard hover:bg-bg-active text-text-secondary hover:text-text-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -106,33 +109,40 @@ const { exportCsv } = useExportCsv(csvData, 'pasar_saham_analytics')
     </div>
 
     <!-- Error State -->
-    <div v-if="marketStore.error" class="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 rounded-xl p-4 mb-6 text-sm text-red-600 dark:text-red-400">
-      <div class="flex items-center gap-2 font-medium">
+    <div v-if="marketStore.error" class="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 mb-6 text-xs text-rose-400">
+      <div class="flex items-center gap-2 font-semibold">
         <span>⚠️</span> Gagal memuat data bursa saham
       </div>
-      <p class="text-xs mt-1 opacity-90">{{ marketStore.error }}</p>
+      <p class="mt-1 opacity-90 font-mono">{{ marketStore.error }}</p>
     </div>
 
     <!-- Loading Skeleton State (Full Widget) -->
     <div v-if="marketStore.loading && (!marketStore.data || !marketStore.data.stocks)" class="flex flex-col gap-6 animate-pulse">
       <!-- Prominent IHSG skeleton -->
-      <div class="h-[320px] rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/30 p-5">
-        <div class="h-6 bg-slate-200 dark:bg-slate-800 rounded w-1/4 mb-4"></div>
-        <div class="h-8 bg-slate-200 dark:bg-slate-800 rounded w-1/3 mb-4"></div>
-        <div class="h-[180px] bg-slate-200 dark:bg-slate-800 rounded-lg w-full"></div>
+      <div class="h-[200px] rounded-xl border border-white/5 bg-bg-subcard p-4 flex flex-col md:flex-row gap-4 justify-between">
+        <div class="md:w-1/3 flex flex-col justify-between">
+          <div>
+            <div class="h-4 bg-white/5 rounded w-1/2 mb-2"></div>
+            <div class="h-6 bg-white/5 rounded w-2/3"></div>
+          </div>
+          <div class="h-5 bg-white/5 rounded w-1/3 mt-4"></div>
+        </div>
+        <div class="flex-1 bg-white/5 rounded-lg h-full"></div>
       </div>
       <!-- Other stocks skeleton -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div v-for="n in 3" :key="'skeleton-market-'+n" class="h-[280px] rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/30 p-5">
-          <div class="h-5 bg-slate-200 dark:bg-slate-800 rounded w-1/3 mb-2"></div>
-          <div class="h-6 bg-slate-200 dark:bg-slate-800 rounded w-1/2 mb-4"></div>
-          <div class="h-[140px] bg-slate-200 dark:bg-slate-800 rounded-lg w-full"></div>
+        <div v-for="n in 3" :key="'skeleton-market-'+n" class="h-[180px] rounded-xl border border-white/5 bg-bg-subcard p-4 flex flex-col justify-between">
+          <div>
+            <div class="h-4 bg-white/5 rounded w-1/3 mb-2"></div>
+            <div class="h-5 bg-white/5 rounded w-1/2"></div>
+          </div>
+          <div class="h-[80px] bg-white/5 rounded-lg w-full"></div>
         </div>
       </div>
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="!marketStore.data || !marketStore.data.stocks || marketStore.data.stocks.length === 0" class="py-12 text-center text-slate-400 dark:text-slate-500">
+    <div v-else-if="!marketStore.data || !marketStore.data.stocks || marketStore.data.stocks.length === 0" class="py-12 text-center text-text-tertiary">
       Tidak ada data bursa saham tersedia
     </div>
 
@@ -142,66 +152,64 @@ const { exportCsv } = useExportCsv(csvData, 'pasar_saham_analytics')
       <!-- 1. Prominent IHSG Card (Wide Layout) -->
       <div 
         v-if="ihsgStock" 
-        class="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 p-5 md:p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col md:flex-row gap-6 justify-between items-stretch"
+        class="rounded-xl border border-white/5 bg-bg-subcard p-4 md:p-5 flex flex-col md:flex-row gap-6 justify-between items-center transition-all duration-300 hover:border-violet-500/20"
       >
         <!-- IHSG Info (Left side on desktop) -->
-        <div class="flex flex-col justify-between md:w-[30%]">
+        <div class="flex flex-col justify-between w-full md:w-[35%] self-stretch">
           <div>
             <div class="flex items-center gap-2 mb-1">
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-white/5 text-violet-400 border border-violet-500/10">
                 Indeks Utama
               </span>
-              <span class="text-[10px] text-slate-400 dark:text-slate-500 font-semibold uppercase font-mono tracking-wider">
+              <span class="text-[9px] text-text-tertiary font-semibold uppercase font-mono tracking-wider">
                 {{ ihsgStock.symbol }}
               </span>
             </div>
             
-            <h4 class="font-extrabold text-2xl text-slate-900 dark:text-slate-100 tracking-tight">
+            <h4 class="font-bold text-lg text-text-primary tracking-tight">
               {{ ihsgStock.name }}
             </h4>
-            <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-              Indeks Harga Saham Gabungan
-            </p>
           </div>
 
-          <div class="my-4 md:my-0">
+          <div class="my-3 md:my-1">
             <!-- Index Value -->
-            <div class="text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight font-mono">
+            <div class="text-2xl font-extrabold text-text-primary tracking-tight font-mono">
               {{ formatMarketPrice(ihsgStock.price, ihsgStock.symbol) }}
             </div>
             
             <!-- Daily Change Badge -->
-            <div class="mt-2">
+            <div class="mt-1.5">
               <span 
                 :class="[
-                  'inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-sm font-bold shadow-xs',
+                  'inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold border font-mono',
                   ihsgStock.changePercent >= 0 
-                    ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400' 
-                    : 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400'
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                    : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
                 ]"
               >
-                <span class="text-xs">{{ ihsgStock.changePercent >= 0 ? '▲' : '▼' }}</span>
+                <span>{{ ihsgStock.changePercent >= 0 ? '▲' : '▼' }}</span>
                 <span>{{ ihsgStock.changePercent >= 0 ? '+' : '' }}{{ ihsgStock.changePercent.toFixed(2) }}%</span>
-                <span class="opacity-80 text-xs">({{ ihsgStock.change >= 0 ? '+' : '' }}{{ ihsgStock.change.toFixed(2) }} pt)</span>
+                <span class="opacity-80 font-normal">({{ ihsgStock.change >= 0 ? '+' : '' }}{{ ihsgStock.change.toFixed(2) }} pt)</span>
               </span>
             </div>
           </div>
 
-          <div class="text-[10px] text-slate-400 dark:text-slate-500 font-medium">
+          <div class="text-[9px] text-text-tertiary">
             Diperbarui: {{ ihsgStock.lastUpdated ? new Date(ihsgStock.lastUpdated).toLocaleTimeString('id-ID') : '-' }}
           </div>
         </div>
 
         <!-- IHSG LineChart (Right side on desktop) -->
-        <div class="flex-1 min-h-[220px]">
-          <p class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mb-2">
+        <div class="w-full md:flex-1 h-[120px] self-center">
+          <p class="text-[9px] text-text-tertiary font-bold uppercase tracking-wider mb-2">
             Performa IHSG 7 Hari Terakhir
           </p>
-          <div class="h-[220px] w-full">
+          <div class="h-[100px] w-full">
             <LineChart
               v-bind="getChartProps(ihsgStock.history, ihsgStock.name)"
               :loading="marketStore.loading"
               unit="pt"
+              accentColor="#A78BFA"
               height="100%"
             />
           </div>
@@ -213,16 +221,16 @@ const { exportCsv } = useExportCsv(csvData, 'pasar_saham_analytics')
         <div
           v-for="stock in otherStocks"
           :key="stock.symbol"
-          class="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300"
+          class="rounded-xl border border-white/5 bg-bg-subcard p-4 flex flex-col justify-between transition-all duration-300 hover:border-violet-500/20"
         >
           <!-- Stock Info -->
-          <div class="mb-4">
+          <div class="mb-2">
             <div class="flex items-center justify-between mb-1">
               <div>
-                <h5 class="font-bold text-base text-slate-900 dark:text-slate-100 tracking-tight">
+                <h5 class="font-bold text-sm text-text-primary tracking-tight">
                   {{ stock.name }}
                 </h5>
-                <p class="text-[10px] text-slate-400 dark:text-slate-500 font-semibold uppercase font-mono tracking-wider">
+                <p class="text-[9px] text-text-tertiary font-semibold uppercase font-mono tracking-wider">
                   {{ stock.symbol }}
                 </p>
               </div>
@@ -230,10 +238,10 @@ const { exportCsv } = useExportCsv(csvData, 'pasar_saham_analytics')
               <!-- Change Badge -->
               <span 
                 :class="[
-                  'inline-flex items-center px-2 py-0.5 rounded text-xs font-bold',
+                  'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border font-mono',
                   stock.changePercent >= 0 
-                    ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400' 
-                    : 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400'
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                    : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
                 ]"
               >
                 {{ stock.changePercent >= 0 ? '+' : '' }}{{ stock.changePercent.toFixed(2) }}%
@@ -241,21 +249,22 @@ const { exportCsv } = useExportCsv(csvData, 'pasar_saham_analytics')
             </div>
 
             <!-- Price -->
-            <div class="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight font-mono">
+            <div class="text-lg font-extrabold text-text-primary tracking-tight font-mono mt-1">
               {{ formatMarketPrice(stock.price, stock.symbol) }}
             </div>
           </div>
 
           <!-- Trend Chart -->
-          <div class="w-full mt-2">
-            <p class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mb-2">
+          <div class="w-full mt-2 border-t border-white/5 pt-3">
+            <p class="text-[9px] text-text-tertiary font-bold uppercase tracking-wider mb-2">
               Tren 7 Hari Terakhir
             </p>
-            <div class="h-[140px] w-full">
+            <div class="h-[80px] w-full">
               <AreaChart
                 v-bind="getChartProps(stock.history, stock.name)"
                 :loading="marketStore.loading"
                 unit="Rp"
+                accentColor="#A78BFA"
                 height="100%"
               />
             </div>

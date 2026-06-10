@@ -1,8 +1,32 @@
 @import "tailwindcss";
 
+@theme {
+  --color-bg-dark: #0D1117;
+  --color-bg-card: #161B22;
+  --color-bg-subcard: #1C2128;
+  --color-bg-active: #21262D;
+  --color-bg-border: #30363D;
+  
+  --color-text-primary: #F0F6FC;
+  --color-text-secondary: #8B949E;
+  --color-text-tertiary: #484F58;
+
+  --color-rates-accent: #F59E0B;
+  --color-weather-accent: #38BDF8;
+  --color-commodities-accent: #10B981;
+  --color-market-accent: #A78BFA;
+  --color-quakes-accent: #FB7185;
+}
+
 html, body {
-  background-color: #020617;
-  color: #f1f5f9;
+  background-color: #0D1117;
+  color: #F0F6FC;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 html {
@@ -14,4 +38,73 @@ body, #__nuxt, #nuxt {
   margin: 0;
   padding: 0;
   overflow: visible;
+}
+
+/* Base Bento Card Style Utilities */
+.bento-card {
+  background-color: #161B22;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  transition: all 0.2s ease-out;
+}
+
+@media (min-width: 768px) {
+  .bento-card {
+    padding: 1.5rem;
+  }
+}
+
+/* Scrollbar Customization */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #30363D #161B22;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #161B22;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #30363D;
+  border-radius: 9999px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: #484F58;
+}
+
+/* Animations */
+@keyframes quake-flash {
+  0% {
+    background-color: rgba(251, 113, 133, 0.15);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.animate-quake-flash {
+  animation: quake-flash 1s ease-out;
+}
+
+@keyframes major-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.03);
+    box-shadow: 0 0 12px rgba(251, 113, 133, 0.2);
+  }
+}
+
+.animate-major-pulse {
+  animation: major-pulse 2s infinite ease-in-out;
 }

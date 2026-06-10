@@ -98,21 +98,24 @@ const { exportCsv } = useExportCsv(csvData, "komoditas_harga_analytics");
 
 <template>
   <div
-    class="relative w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 shadow-md transition-all duration-300 hover:shadow-lg backdrop-blur-md"
+    class="relative w-full overflow-hidden rounded-2xl border border-white/6 bg-[#161B22] p-5 md:p-6 transition-all duration-300 hover:border-emerald-500/30 hover:shadow-[0_0_20px_rgba(16,185,129,0.08)]"
   >
+    <!-- Gradient Accent Top Border -->
+    <div class="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+
     <!-- Header -->
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between mb-6 mt-1">
       <div>
         <h3
-          class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2"
+          class="text-base font-bold text-text-primary flex items-center gap-2"
         >
-          <span>📈</span> Komoditas Global
+          <span class="text-emerald-400">📈</span> Komoditas Global
         </h3>
-        <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
+        <p class="text-xs text-text-tertiary mt-1">
           Harga pasar komoditas dunia real-time • Update terakhir:
           {{
             commoditiesStore.data?.lastUpdated
-              ? new Date(commoditiesStore.data.lastUpdated).toLocaleString(
+              ? new Date(commoditiesStore.data.lastUpdated).toLocaleTimeString(
                   "id-ID",
                 )
               : "-"
@@ -127,7 +130,7 @@ const { exportCsv } = useExportCsv(csvData, "komoditas_harga_analytics");
           !commoditiesStore.data?.commodities ||
           commoditiesStore.data.commodities.length === 0
         "
-        class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-white/5 bg-[#1C2128] hover:bg-[#21262D] text-text-secondary hover:text-text-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -150,12 +153,12 @@ const { exportCsv } = useExportCsv(csvData, "komoditas_harga_analytics");
     <!-- Error State -->
     <div
       v-if="commoditiesStore.error"
-      class="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 rounded-xl p-4 mb-4 text-sm text-red-600 dark:text-red-400"
+      class="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 mb-4 text-xs text-rose-400"
     >
-      <div class="flex items-center gap-2 font-medium">
+      <div class="flex items-center gap-2 font-semibold">
         <span>⚠️</span> Gagal memuat data komoditas
       </div>
-      <p class="text-xs mt-1 opacity-90">{{ commoditiesStore.error }}</p>
+      <p class="mt-1 opacity-90 font-mono">{{ commoditiesStore.error }}</p>
     </div>
 
     <!-- Commodities Grid -->
@@ -170,26 +173,26 @@ const { exportCsv } = useExportCsv(csvData, "komoditas_harga_analytics");
         <div
           v-for="n in 3"
           :key="'skeleton-comm-' + n"
-          class="h-[360px] rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/30 animate-pulse p-5 flex flex-col justify-between"
+          class="h-[320px] rounded-xl border border-white/5 bg-[#1C2128] animate-pulse p-4 flex flex-col justify-between"
         >
           <div>
             <div class="flex justify-between items-center mb-4">
               <div
-                class="h-5 bg-slate-200 dark:bg-slate-800 rounded w-1/3"
+                class="h-4 bg-white/5 rounded w-1/3"
               ></div>
               <div
-                class="h-5 bg-slate-200 dark:bg-slate-800 rounded w-1/4"
+                class="h-4 bg-white/5 rounded w-1/4"
               ></div>
             </div>
             <div
-              class="h-8 bg-slate-200 dark:bg-slate-800 rounded w-1/2 mb-4"
+              class="h-6 bg-white/5 rounded w-1/2 mb-4"
             ></div>
           </div>
           <!-- Chart Placeholder -->
           <div
-            class="h-[180px] bg-slate-200 dark:bg-slate-800 rounded-lg w-full flex items-center justify-center"
+            class="h-[160px] bg-white/5 rounded-lg w-full flex items-center justify-center"
           >
-            <span class="text-xs text-slate-400">Loading chart...</span>
+            <span class="text-xs text-text-tertiary">Memuat grafik...</span>
           </div>
         </div>
       </template>
@@ -201,7 +204,7 @@ const { exportCsv } = useExportCsv(csvData, "komoditas_harga_analytics");
           !commoditiesStore.data.commodities ||
           commoditiesStore.data.commodities.length === 0
         "
-        class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500"
+        class="col-span-full py-12 text-center text-text-tertiary"
       >
         Tidak ada data komoditas tersedia
       </div>
@@ -211,19 +214,19 @@ const { exportCsv } = useExportCsv(csvData, "komoditas_harga_analytics");
         <div
           v-for="item in commoditiesStore.data.commodities"
           :key="item.symbol"
-          class="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-300"
+          class="rounded-xl border border-white/5 bg-[#1C2128] p-4 flex flex-col justify-between transition-all duration-300 hover:border-emerald-500/20"
         >
           <!-- Price and Badge -->
-          <div class="mb-4">
+          <div class="mb-2">
             <div class="flex items-center justify-between mb-1">
               <div>
                 <h4
-                  class="font-bold text-base text-slate-900 dark:text-slate-100 tracking-tight"
+                  class="font-bold text-sm text-text-primary tracking-tight"
                 >
                   {{ item.name }}
                 </h4>
                 <p
-                  class="text-[10px] text-slate-400 dark:text-slate-500 font-semibold uppercase font-mono tracking-wider"
+                  class="text-[9px] text-text-tertiary font-semibold uppercase font-mono tracking-wider"
                 >
                   {{ item.symbol }}
                 </p>
@@ -232,10 +235,10 @@ const { exportCsv } = useExportCsv(csvData, "komoditas_harga_analytics");
               <!-- Change Badge -->
               <span
                 :class="[
-                  'inline-flex items-center px-2 py-0.5 rounded text-xs font-bold',
+                  'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border font-mono',
                   item.changePercent >= 0
-                    ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400'
-                    : 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400',
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                    : 'bg-rose-500/10 text-rose-400 border-rose-500/20',
                 ]"
               >
                 {{ item.changePercent >= 0 ? "+" : ""
@@ -245,24 +248,25 @@ const { exportCsv } = useExportCsv(csvData, "komoditas_harga_analytics");
 
             <!-- Price -->
             <div
-              class="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight font-mono"
+              class="text-xl font-extrabold text-text-primary tracking-tight font-mono mt-1"
             >
               {{ formatPrice(item.price, item.currency) }}
             </div>
           </div>
 
           <!-- History Chart (Last 7 Days) -->
-          <div class="w-full mt-2">
+          <div class="w-full mt-2 border-t border-white/5 pt-3">
             <p
-              class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider mb-2"
+              class="text-[9px] text-text-tertiary font-bold uppercase tracking-wider mb-2"
             >
               Tren 7 Hari Terakhir
             </p>
-            <div class="h-[180px] w-full">
+            <div class="h-[160px] w-full">
               <AreaChart
                 v-bind="getChartProps(item.history, item.name)"
                 :loading="commoditiesStore.loading"
                 :unit="item.currency"
+                accentColor="#10B981"
                 height="100%"
               />
             </div>

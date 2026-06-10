@@ -106,15 +106,18 @@ const { exportCsv } = useExportCsv(csvData, 'kurs_idr_analytics')
 </script>
 
 <template>
-  <div class="relative w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 shadow-md transition-all duration-300 hover:shadow-lg backdrop-blur-md">
+  <div class="relative w-full overflow-hidden rounded-2xl border border-white/6 bg-[#161B22] p-5 md:p-6 transition-all duration-300 hover:border-amber-500/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.08)]">
+    <!-- Gradient Accent Top Border -->
+    <div class="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-amber-500 to-yellow-500"></div>
+
     <!-- Header Area -->
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center justify-between mb-6 mt-1">
       <div>
-        <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-          <span>💵</span> Kurs Mata Uang (IDR)
+        <h3 class="text-base font-bold text-text-primary flex items-center gap-2">
+          <span class="text-amber-500">💵</span> Kurs Mata Uang (IDR)
         </h3>
-        <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
-          Base: IDR • Update terakhir: {{ ratesStore.data?.lastUpdated ? new Date(ratesStore.data.lastUpdated).toLocaleString('id-ID') : '-' }}
+        <p class="text-xs text-text-tertiary mt-1">
+          Base: IDR • Update terakhir: {{ ratesStore.data?.lastUpdated ? new Date(ratesStore.data.lastUpdated).toLocaleTimeString('id-ID') : '-' }}
         </p>
       </div>
 
@@ -122,7 +125,7 @@ const { exportCsv } = useExportCsv(csvData, 'kurs_idr_analytics')
       <button
         @click="exportCsv()"
         :disabled="formattedRates.length === 0"
-        class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-white/5 bg-[#1C2128] hover:bg-[#21262D] text-text-secondary hover:text-text-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -132,34 +135,34 @@ const { exportCsv } = useExportCsv(csvData, 'kurs_idr_analytics')
     </div>
 
     <!-- Error State -->
-    <div v-if="ratesStore.error" class="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 rounded-xl p-4 mb-4 text-sm text-red-600 dark:text-red-400">
-      <div class="flex items-center gap-2 font-medium">
+    <div v-if="ratesStore.error" class="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 mb-4 text-xs text-rose-400">
+      <div class="flex items-center gap-2 font-semibold">
         <span>⚠️</span> Gagal memuat data kurs
       </div>
-      <p class="text-xs mt-1 opacity-90">{{ ratesStore.error }}</p>
+      <p class="mt-1 opacity-90 font-mono">{{ ratesStore.error }}</p>
     </div>
 
     <!-- Table Content -->
-    <div class="overflow-x-auto">
-      <table class="w-full text-left text-sm border-collapse">
+    <div class="overflow-x-auto scrollbar-thin">
+      <table class="w-full text-left text-xs border-collapse">
         <thead>
-          <tr class="border-b border-slate-150 dark:border-slate-800/60 text-slate-400 dark:text-slate-500 font-semibold text-xs tracking-wider uppercase">
-            <th class="py-3 px-4">Mata Uang</th>
-            <th class="py-3 px-4 text-right">Nilai (1 IDR)</th>
-            <th class="py-3 px-4 text-right">Nilai (1 Valas)</th>
-            <th class="py-3 px-4 text-right">Perubahan</th>
+          <tr class="border-b border-white/5 text-text-secondary uppercase tracking-wider">
+            <th class="py-2.5 px-4 font-semibold text-left">Mata Uang</th>
+            <th class="py-2.5 px-4 text-right font-semibold">1 IDR</th>
+            <th class="py-2.5 px-4 text-right font-semibold">1 Valas</th>
+            <th class="py-2.5 px-4 text-right font-semibold">Perubahan</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-slate-100 dark:divide-slate-800/40">
+        <tbody class="divide-y divide-white/5">
           <tr v-if="ratesStore.loading && formattedRates.length === 0" v-for="n in 7" :key="'skeleton-'+n" class="animate-pulse">
-            <td class="py-4 px-4"><div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-2/3"></div></td>
-            <td class="py-4 px-4"><div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/2 ml-auto"></div></td>
-            <td class="py-4 px-4"><div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/2 ml-auto"></div></td>
-            <td class="py-4 px-4"><div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/3 ml-auto"></div></td>
+            <td class="py-3.5 px-4"><div class="h-4 bg-white/5 rounded w-2/3"></div></td>
+            <td class="py-3.5 px-4"><div class="h-4 bg-white/5 rounded w-1/2 ml-auto"></div></td>
+            <td class="py-3.5 px-4"><div class="h-4 bg-white/5 rounded w-1/2 ml-auto"></div></td>
+            <td class="py-3.5 px-4"><div class="h-4 bg-white/5 rounded w-1/3 ml-auto"></div></td>
           </tr>
           
           <tr v-else-if="formattedRates.length === 0">
-            <td colspan="4" class="py-8 text-center text-slate-400 dark:text-slate-500">
+            <td colspan="4" class="py-8 text-center text-text-tertiary">
               Tidak ada data kurs tersedia
             </td>
           </tr>
@@ -168,30 +171,35 @@ const { exportCsv } = useExportCsv(csvData, 'kurs_idr_analytics')
             v-else 
             v-for="rate in formattedRates" 
             :key="rate.code" 
-            class="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 text-slate-700 dark:text-slate-200 transition-colors"
+            class="hover:bg-white/[0.02] text-text-secondary transition-colors"
           >
-            <td class="py-3.5 px-4 font-medium">
-              <span class="text-base mr-2" aria-hidden="true">{{ rate.flag }}</span>
-              <span class="font-semibold text-slate-900 dark:text-slate-100">{{ rate.code }}</span>
-              <span class="hidden sm:inline text-xs text-slate-400 dark:text-slate-500 ml-2">— {{ rate.name }}</span>
+            <td class="py-3 px-4 font-medium">
+              <div class="flex items-center gap-2">
+                <span class="text-sm" aria-hidden="true">{{ rate.flag }}</span>
+                <span class="font-bold text-text-primary">{{ rate.code }}</span>
+                <span class="hidden sm:inline text-xs text-text-tertiary">— {{ rate.name }}</span>
+              </div>
             </td>
-            <td class="py-3.5 px-4 text-right font-mono text-xs text-slate-500 dark:text-slate-400">
+            <td class="py-3 px-4 text-right font-mono text-xs" :class="rate.rawRate === '-' ? 'text-text-tertiary' : 'text-text-secondary'">
               {{ rate.rawRate }}
             </td>
-            <td class="py-3.5 px-4 text-right font-semibold">
-              {{ rate.rateInIdr }}
+            <td class="py-3 px-4 text-right font-semibold font-mono text-text-primary">
+              <span v-if="rate.rateInIdr === '-'" class="text-text-tertiary">-</span>
+              <span v-else>{{ rate.rateInIdr }}</span>
             </td>
-            <td class="py-3.5 px-4 text-right">
+            <td class="py-3 px-4 text-right">
               <span 
+                v-if="rate.rawRate !== '-'"
                 :class="[
-                  'inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold',
+                  'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold font-mono border',
                   rate.changePercent >= 0 
-                    ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400' 
-                    : 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400'
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                    : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
                 ]"
               >
                 {{ rate.changeText }}
               </span>
+              <span v-else class="text-text-tertiary font-mono">-</span>
             </td>
           </tr>
         </tbody>

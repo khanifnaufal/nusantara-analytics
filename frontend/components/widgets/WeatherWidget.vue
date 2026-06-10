@@ -27,73 +27,79 @@ const getWeatherEmoji = (code: number, desc: string) => {
   return '🌡️'
 }
 
-// Helper to get card color class based on temperature
+// Helper to get card styles based on temperature
 const getTempColorClass = (temp: number) => {
   if (temp < 24) {
     // Biru (<24)
     return {
-      card: 'bg-gradient-to-br from-blue-500/10 to-blue-600/5 dark:from-blue-950/20 dark:to-slate-900 border-blue-200 dark:border-blue-900/40 text-blue-950 dark:text-blue-100 hover:border-blue-400 dark:hover:border-blue-700/60 shadow-blue-500/5',
-      badge: 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800/30'
+      border: 'hover:border-[#38BDF8]/30 hover:shadow-[0_0_15px_rgba(56,189,248,0.08)]',
+      tempText: 'text-[#38BDF8]',
+      badge: 'bg-[#38BDF8]/10 text-[#38BDF8] border-[#38BDF8]/20'
     }
   } else if (temp <= 30) {
     // Hijau (24-30)
     return {
-      card: 'bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 dark:from-emerald-950/20 dark:to-slate-900 border-emerald-200 dark:border-emerald-900/40 text-emerald-950 dark:text-emerald-100 hover:border-emerald-400 dark:hover:border-emerald-700/60 shadow-emerald-500/5',
-      badge: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/30'
+      border: 'hover:border-[#10B981]/30 hover:shadow-[0_0_15px_rgba(16,185,129,0.08)]',
+      tempText: 'text-[#10B981]',
+      badge: 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/20'
     }
   } else {
     // Oranye (>30)
     return {
-      card: 'bg-gradient-to-br from-amber-500/10 to-amber-600/5 dark:from-amber-950/20 dark:to-slate-900 border-amber-200 dark:border-amber-900/40 text-amber-950 dark:text-amber-100 hover:border-amber-400 dark:hover:border-amber-700/60 shadow-amber-500/5',
-      badge: 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-800/30'
+      border: 'hover:border-[#F59E0B]/30 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)]',
+      tempText: 'text-[#F59E0B]',
+      badge: 'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20'
     }
   }
 }
 </script>
 
 <template>
-  <div class="relative w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 shadow-md transition-all duration-300 hover:shadow-lg backdrop-blur-md">
+  <div class="relative w-full overflow-hidden rounded-2xl border border-white/6 bg-[#161B22] p-5 md:p-6 transition-all duration-300 hover:border-sky-400/30 hover:shadow-[0_0_20px_rgba(56,189,248,0.08)]">
+    <!-- Gradient Accent Top Border -->
+    <div class="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-sky-400 to-blue-500"></div>
+
     <!-- Header -->
-    <div class="mb-6">
-      <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-        <span>🌤️</span> Cuaca Kota Indonesia
+    <div class="mb-6 mt-1">
+      <h3 class="text-base font-bold text-text-primary flex items-center gap-2">
+        <span class="text-sky-400">🌤️</span> Cuaca Kota Indonesia
       </h3>
-      <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
-        Update terakhir: {{ weatherStore.data?.lastUpdated ? new Date(weatherStore.data.lastUpdated).toLocaleString('id-ID') : '-' }}
+      <p class="text-xs text-text-tertiary mt-1">
+        Update terakhir: {{ weatherStore.data?.lastUpdated ? new Date(weatherStore.data.lastUpdated).toLocaleTimeString('id-ID') : '-' }}
       </p>
     </div>
 
     <!-- Error State -->
-    <div v-if="weatherStore.error" class="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 rounded-xl p-4 mb-4 text-sm text-red-600 dark:text-red-400">
-      <div class="flex items-center gap-2 font-medium">
+    <div v-if="weatherStore.error" class="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 mb-4 text-xs text-rose-400">
+      <div class="flex items-center gap-2 font-semibold">
         <span>⚠️</span> Gagal memuat data cuaca
       </div>
-      <p class="text-xs mt-1 opacity-90">{{ weatherStore.error }}</p>
+      <p class="mt-1 opacity-90 font-mono">{{ weatherStore.error }}</p>
     </div>
 
-    <!-- Grid Weather Card Layout -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+    <!-- Grid Weather Card Layout (2 columns x 3 rows on large screen) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <!-- Loading Skeleton State -->
       <template v-if="weatherStore.loading && (!weatherStore.data || !weatherStore.data.cities)">
         <div 
           v-for="n in 6" 
           :key="'skeleton-weather-'+n" 
-          class="h-[175px] rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/30 animate-pulse p-5 flex flex-col justify-between"
+          class="h-[140px] rounded-xl border border-white/5 bg-[#1C2128] animate-pulse p-4 flex flex-col justify-between"
         >
           <div class="flex items-start justify-between">
-            <div class="h-5 bg-slate-200 dark:bg-slate-800 rounded w-1/2"></div>
-            <div class="h-5 bg-slate-200 dark:bg-slate-800 rounded w-1/4"></div>
+            <div class="h-4 bg-white/5 rounded w-1/2"></div>
+            <div class="h-4 bg-white/5 rounded w-1/4"></div>
           </div>
-          <div class="h-10 bg-slate-200 dark:bg-slate-800 rounded w-1/3 my-2 mx-auto"></div>
+          <div class="h-8 bg-white/5 rounded w-1/3 my-2 mx-auto"></div>
           <div class="flex justify-between gap-4 mt-2">
-            <div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/3"></div>
-            <div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/3"></div>
+            <div class="h-3 bg-white/5 rounded w-1/3"></div>
+            <div class="h-3 bg-white/5 rounded w-1/3"></div>
           </div>
         </div>
       </template>
 
       <!-- Empty State -->
-      <div v-else-if="!weatherStore.data || !weatherStore.data.cities || weatherStore.data.cities.length === 0" class="col-span-full py-12 text-center text-slate-400 dark:text-slate-500">
+      <div v-else-if="!weatherStore.data || !weatherStore.data.cities || weatherStore.data.cities.length === 0" class="col-span-full py-12 text-center text-text-tertiary">
         Tidak ada data cuaca kota tersedia
       </div>
 
@@ -103,41 +109,41 @@ const getTempColorClass = (temp: number) => {
           v-for="city in weatherStore.data.cities"
           :key="city.city"
           :class="[
-            'relative rounded-xl border p-5 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between h-[175px]',
-            getTempColorClass(city.temperature).card
+            'relative rounded-xl border border-white/5 bg-[#1C2128] p-4 transition-all duration-300 flex flex-col justify-between h-[140px]',
+            getTempColorClass(city.temperature).border
           ]"
         >
           <!-- Top Area: City Name & Weather Description Badge -->
           <div class="flex items-start justify-between gap-2">
-            <h4 class="font-bold text-base text-slate-800 dark:text-slate-100 tracking-tight truncate">
+            <h4 class="font-bold text-sm text-text-primary tracking-tight">
               {{ city.city }}
             </h4>
             
-            <span :class="['inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider', getTempColorClass(city.temperature).badge]">
+            <span :class="['inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border', getTempColorClass(city.temperature).badge]">
               {{ city.weatherDesc }}
             </span>
           </div>
 
-          <!-- Middle Area: Huge Temperature + Emoji Icon -->
-          <div class="flex items-center justify-center gap-2 my-2">
-            <span class="text-4xl" aria-hidden="true">
+          <!-- Middle Area: Temperature + Emoji Icon -->
+          <div class="flex items-center justify-center gap-3 my-1">
+            <span class="text-3xl animate-bounce-subtle" aria-hidden="true">
               {{ getWeatherEmoji(city.weatherCode, city.weatherDesc) }}
             </span>
-            <span class="text-4xl font-extrabold tracking-tighter">
+            <span class="text-3xl font-extrabold tracking-tighter" :class="getTempColorClass(city.temperature).tempText">
               {{ Math.round(city.temperature) }}°C
             </span>
           </div>
 
           <!-- Bottom Area: Humidity & Wind Speed -->
-          <div class="grid grid-cols-2 border-t border-slate-200/50 dark:border-slate-800/40 pt-3 text-[11px] font-medium opacity-85">
-            <div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 justify-start">
+          <div class="grid grid-cols-2 border-t border-white/5 pt-2.5 text-[10px] font-medium text-text-secondary">
+            <div class="flex items-center gap-1.5 justify-start">
               <span>💧</span>
-              <span class="text-slate-700 dark:text-slate-300 font-semibold">{{ city.humidity }}%</span>
+              <span class="text-text-primary font-bold">{{ city.humidity }}%</span>
             </div>
             
-            <div class="flex items-center gap-1 text-slate-500 dark:text-slate-400 justify-end border-l border-slate-200/50 dark:border-slate-800/40 pl-2">
+            <div class="flex items-center gap-1.5 justify-end border-l border-white/5 pl-2">
               <span>💨</span>
-              <span class="text-slate-700 dark:text-slate-300 font-semibold">{{ city.windSpeed }} km/h</span>
+              <span class="text-text-primary font-bold">{{ city.windSpeed }} km/h</span>
             </div>
           </div>
         </div>

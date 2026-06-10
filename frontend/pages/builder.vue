@@ -39,7 +39,7 @@ onUnmounted(() => {
         <div>
           <div class="flex items-center gap-2">
             <span class="text-3xl" aria-hidden="true">🇮🇩</span>
-            <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+            <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight bg-linear-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
               Nusantara Analytics
             </h1>
           </div>

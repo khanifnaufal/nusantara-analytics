@@ -134,7 +134,7 @@ const generateRatesHistory = (currency: string, currentValInIdr: number, rangeDa
   for (let i = 0; i < rangeDays; i++) {
     const d = new Date()
     d.setDate(today.getDate() - i)
-    const dateStr = d.toISOString().split('T')[0]
+    const dateStr = d.toISOString().split('T')[0] || ''
     
     tempHistory.push({
       date: dateStr,
@@ -163,7 +163,7 @@ const generateWeatherHistory = (
   for (let i = 0; i < rangeDays; i++) {
     const d = new Date()
     d.setDate(today.getDate() - i)
-    const dateStr = d.toISOString().split('T')[0]
+    const dateStr = d.toISOString().split('T')[0] || ''
     
     tempHistory.push({
       date: dateStr,
@@ -195,7 +195,7 @@ const generateDeterministicFinanceHistory = (symbol: string, currentPrice: numbe
   for (let i = 0; i < rangeDays; i++) {
     const d = new Date()
     d.setDate(today.getDate() - i)
-    const dateStr = d.toISOString().split('T')[0]
+    const dateStr = d.toISOString().split('T')[0] || ''
     
     tempHistory.push({
       date: dateStr,
@@ -221,7 +221,7 @@ const getQuoteHistory = (quote: any, rangeDays: number) => {
     return sortedHistory.slice(sliceStart).map((h: any) => {
       const d = new Date(h.timestamp)
       return {
-        date: d.toISOString().split('T')[0],
+        date: d.toISOString().split('T')[0] || '',
         value: parseFloat(h.close.toFixed(2))
       }
     })
@@ -348,11 +348,10 @@ const activeTitle = computed(() => {
 const chartOption = computed(() => {
   const chart = chartData.value
   const config = appliedConfig.value
-  const isDark = useDark()
-  const theme = isDark.value ? 'dark' : 'light'
   const unitSuffix = chart.unit ? ' ' + chart.unit : ''
   
   return {
+    backgroundColor: 'transparent',
     color: [chart.color],
     tooltip: {
       trigger: 'axis',
@@ -366,7 +365,7 @@ const chartOption = computed(() => {
         if (!params || params.length === 0) return ''
         const title = params[0].axisValueLabel || params[0].name
         let result = `<div style="font-family: Inter, sans-serif; font-size: 12px; line-height: 1.5; padding: 4px;">`
-        result += `<div style="font-weight: 600; margin-bottom: 6px; color: var(--tooltip-title-color, #64748b);">${title}</div>`
+        result += `<div style="font-weight: 600; margin-bottom: 6px; color: var(--tooltip-title-color, #8B949E);">${title}</div>`
         params.forEach((item: any) => {
           let val = '-'
           if (item.value !== undefined && item.value !== null) {
@@ -381,9 +380,9 @@ const chartOption = computed(() => {
           result += `<div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 4px;">
             <div style="display: flex; align-items: center; gap: 6px;">
               ${item.marker}
-              <span style="color: var(--tooltip-text-color, #475569); font-weight: 500;">${item.seriesName}</span>
+              <span style="color: var(--tooltip-text-color, #8B949E); font-weight: 500;">${item.seriesName}</span>
             </div>
-            <span style="font-weight: 600; color: var(--tooltip-val-color, #0f172a);">${val}</span>
+            <span style="font-weight: 600; color: var(--tooltip-val-color, #ffffff);">${val}</span>
           </div>`
         })
         result += `</div>`
@@ -391,7 +390,7 @@ const chartOption = computed(() => {
       }
     },
     grid: {
-      top: 30,
+      top: 25,
       left: '2%',
       right: '2%',
       bottom: 15,
@@ -404,7 +403,7 @@ const chartOption = computed(() => {
       axisLine: {
         show: true,
         lineStyle: {
-          color: 'rgba(156, 163, 175, 0.2)'
+          color: 'rgba(255, 255, 255, 0.08)'
         }
       },
       axisTick: {
@@ -412,7 +411,8 @@ const chartOption = computed(() => {
       },
       axisLabel: {
         fontFamily: 'Inter, sans-serif',
-        fontSize: 11
+        fontSize: 10,
+        color: '#8B949E'
       }
     },
     yAxis: {
@@ -425,7 +425,8 @@ const chartOption = computed(() => {
       },
       axisLabel: {
         fontFamily: 'Inter, sans-serif',
-        fontSize: 11,
+        fontSize: 10,
+        color: '#8B949E',
         formatter: (value: number) => {
           if (chart.unit === 'Rp') {
             return new Intl.NumberFormat('id-ID', { notation: 'compact', style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value)
@@ -437,7 +438,7 @@ const chartOption = computed(() => {
       },
       splitLine: {
         lineStyle: {
-          color: 'rgba(156, 163, 175, 0.1)',
+          color: 'rgba(255, 255, 255, 0.04)',
           type: 'dashed'
         }
       }
@@ -450,12 +451,12 @@ const chartOption = computed(() => {
         smooth: config.chartType !== 'bar',
         showSymbol: false,
         symbolSize: 6,
-        barMaxWidth: config.chartType === 'bar' ? 32 : undefined,
+        barMaxWidth: config.chartType === 'bar' ? 24 : undefined,
         itemStyle: config.chartType === 'bar' ? {
           borderRadius: [4, 4, 0, 0]
         } : undefined,
         areaStyle: config.chartType === 'area' ? {
-          opacity: 0.12,
+          opacity: 0.15,
           color: {
             type: 'linear',
             x: 0,
@@ -476,7 +477,7 @@ const chartOption = computed(() => {
           }
         },
         lineStyle: config.chartType !== 'bar' ? {
-          width: config.chartType === 'area' ? 2.5 : 3
+          width: config.chartType === 'area' ? 2 : 2.5
         } : undefined
       }
     ]
@@ -595,14 +596,17 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="relative w-full rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-6 shadow-md transition-all duration-300 hover:shadow-lg backdrop-blur-md">
+  <div class="relative w-full overflow-hidden rounded-2xl border border-white/6 bg-[#161B22] p-5 md:p-6 transition-all duration-300 hover:border-emerald-500/30 hover:shadow-[0_0_20px_rgba(16,185,129,0.08)]">
+    <!-- Gradient Accent Top Border -->
+    <div class="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-emerald-500 to-indigo-500"></div>
+
     <!-- Header area -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 mt-1">
       <div>
-        <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+        <h3 class="text-base font-bold text-text-primary flex items-center gap-2">
           <span>🎨</span> Custom Visualisasi Builder
         </h3>
-        <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">
+        <p class="text-xs text-text-tertiary mt-1">
           Pilih metrik, atur tipe grafik dan rentang waktu sesuai keinginan Anda.
         </p>
       </div>
@@ -611,10 +615,10 @@ onMounted(async () => {
       <div class="flex items-center gap-2 self-start sm:self-auto">
         <button
           @click="copyLink()"
-          class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer transition-all"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-white/5 bg-[#1C2128] hover:bg-[#21262D] text-text-secondary hover:text-text-primary cursor-pointer transition-all"
         >
-          <span v-if="copied" class="flex items-center gap-1.5 text-emerald-500 font-bold">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <span v-if="copied" class="flex items-center gap-1.5 text-emerald-400 font-bold">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
             </svg>
             Tersalin!
@@ -630,7 +634,7 @@ onMounted(async () => {
         <button
           @click="exportCsv()"
           :disabled="isLoading || !chartData || chartData.dataPoints.length === 0"
-          class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/80 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-white/5 bg-[#1C2128] hover:bg-[#21262D] text-text-secondary hover:text-text-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -641,16 +645,16 @@ onMounted(async () => {
     </div>
 
     <!-- Controls Selector Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 mb-6 rounded-xl bg-slate-50/50 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-850/60 transition-all duration-300">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 mb-6 rounded-xl bg-[#1C2128] border border-white/5 transition-all duration-300">
       <!-- 1. Metric Category -->
       <div class="col-span-1 md:col-span-3">
-        <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">
+        <label class="block text-[10px] font-bold text-text-tertiary uppercase tracking-wider mb-1.5">
           Kategori Metrik
         </label>
         <select
           v-model="selectedMetric"
           @change="onMetricChange()"
-          class="w-full text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-slate-700 dark:text-slate-350 focus:border-indigo-500 focus:outline-none transition-colors cursor-pointer"
+          class="w-full text-xs rounded-lg border border-white/5 bg-[#161B22] px-3 py-2 text-text-primary focus:border-emerald-500 focus:outline-none transition-colors cursor-pointer"
         >
           <option v-for="m in METRIC_CATEGORIES" :key="m.value" :value="m.value">
             {{ m.label }}
@@ -660,12 +664,12 @@ onMounted(async () => {
 
       <!-- 2. Sub Option (Item) -->
       <div class="col-span-1" :class="selectedMetric === 'weather' ? 'md:col-span-3' : 'md:col-span-5'">
-        <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">
+        <label class="block text-[10px] font-bold text-text-tertiary uppercase tracking-wider mb-1.5">
           Pilih Item
         </label>
         <select
           v-model="selectedItem"
-          class="w-full text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-slate-700 dark:text-slate-350 focus:border-indigo-500 focus:outline-none transition-colors cursor-pointer"
+          class="w-full text-xs rounded-lg border border-white/5 bg-[#161B22] px-3 py-2 text-text-primary focus:border-emerald-500 focus:outline-none transition-colors cursor-pointer"
         >
           <option v-for="item in itemOptions" :key="item.value" :value="item.value">
             {{ item.label }}
@@ -675,12 +679,12 @@ onMounted(async () => {
 
       <!-- 3. Weather Metric Parameter (Cuaca only) -->
       <div v-if="selectedMetric === 'weather'" class="col-span-1 md:col-span-2">
-        <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">
+        <label class="block text-[10px] font-bold text-text-tertiary uppercase tracking-wider mb-1.5">
           Parameter Cuaca
         </label>
         <select
           v-model="selectedWeatherMetric"
-          class="w-full text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-slate-700 dark:text-slate-350 focus:border-indigo-500 focus:outline-none transition-colors cursor-pointer"
+          class="w-full text-xs rounded-lg border border-white/5 bg-[#161B22] px-3 py-2 text-text-primary focus:border-emerald-500 focus:outline-none transition-colors cursor-pointer"
         >
           <option v-for="w in WEATHER_METRICS" :key="w.value" :value="w.value">
             {{ w.label }} ({{ w.unit }})
@@ -690,12 +694,12 @@ onMounted(async () => {
 
       <!-- 4. Chart Type Selection -->
       <div class="col-span-1 md:col-span-2">
-        <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">
+        <label class="block text-[10px] font-bold text-text-tertiary uppercase tracking-wider mb-1.5">
           Tipe Grafik
         </label>
         <select
           v-model="selectedChartType"
-          class="w-full text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-slate-700 dark:text-slate-350 focus:border-indigo-500 focus:outline-none transition-colors cursor-pointer"
+          class="w-full text-xs rounded-lg border border-white/5 bg-[#161B22] px-3 py-2 text-text-primary focus:border-emerald-500 focus:outline-none transition-colors cursor-pointer"
         >
           <option value="line">Line Chart</option>
           <option value="bar">Bar Chart</option>
@@ -705,12 +709,12 @@ onMounted(async () => {
 
       <!-- 5. Time Range Selection -->
       <div class="col-span-1 md:col-span-1.5" :class="selectedMetric === 'weather' ? 'md:col-span-1.5' : 'md:col-span-2'">
-        <label class="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1.5">
+        <label class="block text-[10px] font-bold text-text-tertiary uppercase tracking-wider mb-1.5">
           Waktu
         </label>
         <select
           v-model="selectedRange"
-          class="w-full text-sm rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-slate-700 dark:text-slate-350 focus:border-indigo-500 focus:outline-none transition-colors cursor-pointer"
+          class="w-full text-xs rounded-lg border border-white/5 bg-[#161B22] px-3 py-2 text-text-primary focus:border-emerald-500 focus:outline-none transition-colors cursor-pointer"
         >
           <option :value="3">3 Hari</option>
           <option :value="7">7 Hari</option>
@@ -721,7 +725,7 @@ onMounted(async () => {
       <div class="col-span-1 md:col-span-2 flex items-end">
         <button
           @click="applySettings()"
-          class="w-full h-[38px] inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-md shadow-emerald-500/10 hover:shadow-emerald-500/20 active:scale-[0.98] transition-all cursor-pointer"
+          class="w-full h-[34px] inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-md shadow-emerald-500/10 hover:shadow-emerald-500/20 active:scale-[0.98] transition-all cursor-pointer"
         >
           <span>⚡</span> Terapkan
         </button>
@@ -730,12 +734,12 @@ onMounted(async () => {
 
     <!-- Chart Panel -->
     <div class="mt-6">
-      <div class="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-800 pb-3">
-        <h4 class="text-sm font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wide">
+      <div class="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
+        <h4 class="text-xs font-extrabold text-text-secondary uppercase tracking-wide">
           {{ activeTitle }}
         </h4>
-        <div class="text-[10px] text-slate-400 dark:text-slate-500 font-semibold uppercase tracking-wider font-mono">
-          Y-Axis Unit: <span class="text-slate-600 dark:text-slate-300 font-bold">{{ chartData.unit || 'n/a' }}</span>
+        <div class="text-[9px] text-text-tertiary font-semibold uppercase tracking-wider font-mono">
+          Y-Axis Unit: <span class="text-text-primary font-bold">{{ chartData.unit || 'n/a' }}</span>
         </div>
       </div>
 
@@ -749,18 +753,18 @@ onMounted(async () => {
       </div>
 
       <!-- Compact numeric data preview table -->
-      <div v-if="!isLoading && chartData.dataPoints.length > 0" class="mt-6 overflow-x-auto border border-slate-100 dark:border-slate-800/40 rounded-xl bg-slate-50/20 dark:bg-slate-950/10">
+      <div v-if="!isLoading && chartData.dataPoints.length > 0" class="mt-6 overflow-x-auto border border-white/5 rounded-xl bg-[#1C2128]/50 scrollbar-thin">
         <table class="w-full text-left text-xs border-collapse">
           <thead>
-            <tr class="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-500 font-bold tracking-wider uppercase">
-              <th class="py-2.5 px-4">Tanggal</th>
-              <th class="py-2.5 px-4 text-right">Nilai ({{ chartData.unit }})</th>
+            <tr class="bg-[#1C2128] border-b border-white/5 text-text-tertiary font-bold tracking-wider uppercase">
+              <th class="py-2 px-4">Tanggal</th>
+              <th class="py-2 px-4 text-right">Nilai ({{ chartData.unit }})</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100/50 dark:divide-slate-800/20">
-            <tr v-for="(val, idx) in chartData.dataPoints" :key="'preview-'+idx" class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10 text-slate-600 dark:text-slate-300">
+          <tbody class="divide-y divide-white/5">
+            <tr v-for="(val, idx) in chartData.dataPoints" :key="'preview-'+idx" class="hover:bg-white/[0.02] text-text-secondary">
               <td class="py-2 px-4 font-medium">{{ chartData.xAxis[idx] }}</td>
-              <td class="py-2 px-4 text-right font-mono font-semibold">{{ val }}</td>
+              <td class="py-2 px-4 text-right font-mono font-semibold text-text-primary">{{ val }}</td>
             </tr>
           </tbody>
         </table>
@@ -770,9 +774,9 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-/* Focus borders matching the indigo theme */
+/* Focus border accents */
 select:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+  border-color: #10B981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
 }
 </style>

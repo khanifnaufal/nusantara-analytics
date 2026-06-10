@@ -44,16 +44,16 @@ const theme = computed(() => (isDark.value ? 'dark' : 'light'))
       <!-- Skeleton loader when loading is true -->
       <div
         v-if="loading"
-        class="w-full h-full flex flex-col items-center justify-center rounded-xl border border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm animate-pulse p-6"
+        class="w-full h-full flex flex-col items-center justify-center rounded-2xl bg-bg-subcard animate-pulse p-6 border border-white/5"
       >
         <div class="flex flex-col items-center gap-3">
           <!-- Spinner -->
           <div class="relative w-10 h-10">
-            <div class="absolute inset-0 border-4 border-emerald-500/20 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-white/5 rounded-full"></div>
             <div class="absolute inset-0 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
           </div>
-          <p class="text-xs text-slate-400 dark:text-slate-500 font-medium tracking-wide">
-            Loading chart data...
+          <p class="text-xs text-text-secondary font-medium tracking-wide">
+            Memuat data grafik...
           </p>
         </div>
       </div>
@@ -80,10 +80,10 @@ const theme = computed(() => (isDark.value ? 'dark' : 'light'))
   --tooltip-val-color: #0f172a;
 }
 html.dark {
-  --tooltip-bg: rgba(15, 23, 42, 0.95);
-  --tooltip-border: rgba(51, 65, 85, 0.8);
-  --tooltip-title-color: #94a3b8;
-  --tooltip-text-color: #cbd5e1;
-  --tooltip-val-color: #f8fafc;
+  --tooltip-bg: #21262D;
+  --tooltip-border: rgba(255, 255, 255, 0.1);
+  --tooltip-title-color: #8B949E;
+  --tooltip-text-color: #F0F6FC;
+  --tooltip-val-color: #ffffff;
 }
 </style>
