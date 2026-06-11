@@ -24,48 +24,45 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="relative min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-6 md:p-8">
-    <!-- Premium Decorative background glow blobs wrapped to prevent page overflow -->
-    <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
-      <div class="absolute -top-40 -left-40 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl"></div>
-      <div class="absolute top-1/2 -right-40 w-96 h-96 bg-violet-500/5 rounded-full blur-3xl"></div>
-      <div class="absolute -bottom-40 left-1/3 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl"></div>
-    </div>
+  <div class="relative min-h-screen bg-[#0A0A0A] text-slate-100 p-4 sm:p-6 md:p-8">
+    <!-- Decorative background glow blob -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-blue-500/5 rounded-full blur-3xl pointer-events-none z-0"></div>
 
     <div class="max-w-7xl mx-auto space-y-8 relative z-10">
       
-      <!-- Top Header Area -->
-      <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-800/60">
+      <!-- Top Header Area - Sticky Navbar style -->
+      <header class="sticky top-4 z-40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 md:p-5 rounded-2xl border-b border-white/5 bg-[#0A0A0A]/90 backdrop-blur-xl shadow-lg shadow-black/10">
         <div>
-          <div class="flex items-center gap-2">
-            <span class="text-3xl" aria-hidden="true">🇮🇩</span>
-            <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight bg-linear-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+          <div class="flex items-center gap-2.5">
+            <span class="text-2xl" aria-hidden="true">🇮🇩</span>
+            <h1 class="text-xl md:text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">
               Nusantara Analytics
             </h1>
           </div>
-          <p class="text-xs md:text-sm text-slate-400 mt-1.5 font-medium">
+          <p class="text-[11px] md:text-xs text-text-secondary mt-1 font-medium">
             Visualisasi Grafik Kustom untuk Komoditas, Kurs Mata Uang, Pasar Saham, & Cuaca Regional.
           </p>
         </div>
 
-        <!-- System Navigation & Clock -->
+        <!-- System Navigation & Status -->
         <div class="flex flex-wrap items-center gap-3 self-start sm:self-auto">
           <!-- Back to Dashboard -->
           <NuxtLink
             to="/"
-            class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900 hover:border-slate-700 text-slate-200 transition-all shadow-sm"
+            class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl border border-white/10 bg-transparent hover:border-white/20 text-zinc-400 hover:text-white transition-all shadow-sm"
           >
             <span>🏠</span> Dashboard Utama
           </NuxtLink>
 
-          <div class="inline-flex items-center gap-3 bg-slate-900/60 border border-slate-850/80 backdrop-blur-md py-2 px-4 rounded-xl text-xs font-semibold text-slate-300 shadow-sm">
+          <!-- Live status pill -->
+          <div class="inline-flex items-center gap-2 bg-[#111111] border border-white/5 py-1.5 px-3.5 rounded-xl text-xs font-bold text-text-secondary shadow-sm">
             <span class="relative flex h-2 w-2">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
             </span>
-            <span class="tracking-wide">Sistem Online</span>
-            <span class="text-slate-700" aria-hidden="true">|</span>
-            <span class="font-mono text-slate-200">{{ liveTime }}</span>
+            <span class="tracking-wide">Live</span>
+            <span class="text-white/10" aria-hidden="true">|</span>
+            <span class="font-mono text-blue-400 text-[11px]">{{ liveTime }}</span>
           </div>
         </div>
       </header>

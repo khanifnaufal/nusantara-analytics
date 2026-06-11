@@ -15,6 +15,12 @@ interface Props {
   loading?: boolean
   unit?: string
   accentColor?: string
+  lineWidth?: number
+  smooth?: boolean
+  showOnlyFirstLastX?: boolean
+  yAxisMin?: any
+  yAxisMax?: any
+  yAxisSplitNumber?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -22,13 +28,19 @@ const props = withDefaults(defineProps<Props>(), {
   height: '300px',
   loading: false,
   unit: '',
-  accentColor: ''
+  accentColor: '',
+  lineWidth: 2.5,
+  smooth: true,
+  showOnlyFirstLastX: false,
+  yAxisMin: undefined,
+  yAxisMax: undefined,
+  yAxisSplitNumber: undefined
 })
 
 const option = computed(() => {
   const colors = props.accentColor
-    ? [props.accentColor, '#A78BFA', '#38BDF8', '#10B981', '#FB7185', '#F59E0B']
-    : ['#10b981', '#6366f1', '#f59e0b', '#ec4899', '#3b82f6', '#8b5cf6']
+    ? [props.accentColor, '#60A5FA', '#93C5FD', '#2563EB', '#1D4ED8']
+    : ['#3B82F6', '#60A5FA', '#93C5FD', '#2563EB', '#1D4ED8']
 
   return {
     backgroundColor: 'transparent',
@@ -109,11 +121,17 @@ const option = computed(() => {
       axisLabel: {
         fontFamily: 'Inter, sans-serif',
         fontSize: 10,
-        color: '#8B949E'
+        color: '#52525B',
+        interval: props.showOnlyFirstLastX
+          ? (index: number) => index === 0 || index === props.xAxis.length - 1
+          : undefined
       }
     },
     yAxis: {
       type: 'value',
+      min: props.yAxisMin,
+      max: props.yAxisMax,
+      splitNumber: props.yAxisSplitNumber,
       axisLine: {
         show: false
       },
@@ -123,7 +141,7 @@ const option = computed(() => {
       axisLabel: {
         fontFamily: 'Inter, sans-serif',
         fontSize: 10,
-        color: '#8B949E',
+        color: '#52525B',
         formatter: (value: number) => {
           return new Intl.NumberFormat(undefined, { notation: 'compact' }).format(value) + (props.unit ? ' ' + props.unit : '')
         }
@@ -139,7 +157,7 @@ const option = computed(() => {
       name: s.name,
       type: 'line',
       data: s.data,
-      smooth: true,
+      smooth: props.smooth,
       showSymbol: false,
       symbolSize: 6,
       emphasis: {
@@ -149,7 +167,7 @@ const option = computed(() => {
         }
       },
       lineStyle: {
-        width: 2.5
+        width: props.lineWidth
       }
     }))
   }

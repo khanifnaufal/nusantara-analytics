@@ -36,6 +36,61 @@ const props = withDefaults(defineProps<Props>(), {
 
 const isDark = useDark()
 const theme = computed(() => (isDark.value ? 'dark' : 'light'))
+
+// Helper for deep merging options recursively
+function deepMerge(target: any, source: any): any {
+  if (!source) return target
+  const output = { ...target }
+  for (const key in source) {
+    if (Object.prototype.hasOwnProperty.call(source, key)) {
+      if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+        output[key] = deepMerge(target[key] || {}, source[key])
+      } else {
+        output[key] = source[key]
+      }
+    }
+  }
+  return output
+}
+
+// Global default ECharts config
+const defaultOption = {
+  grid: {
+    top: 8,
+    right: 8,
+    bottom: 24,
+    left: 48
+  },
+  xAxis: {
+    axisLabel: {
+      fontSize: 10,
+      color: '#52525B'
+    }
+  },
+  yAxis: {
+    axisLabel: {
+      fontSize: 10,
+      color: '#52525B'
+    },
+    splitLine: {
+      lineStyle: {
+        color: 'rgba(255,255,255,0.04)'
+      }
+    }
+  },
+  tooltip: {
+    backgroundColor: '#21262D',
+    borderColor: 'rgba(255,255,255,0.1)',
+    textStyle: {
+      color: '#F0F6FC',
+      fontSize: 12
+    }
+  }
+}
+
+const mergedOption = computed(() => {
+  return deepMerge(defaultOption, props.option)
+})
 </script>
 
 <template>
@@ -50,7 +105,7 @@ const theme = computed(() => (isDark.value ? 'dark' : 'light'))
           <!-- Spinner -->
           <div class="relative w-10 h-10">
             <div class="absolute inset-0 border-4 border-white/5 rounded-full"></div>
-            <div class="absolute inset-0 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+            <div class="absolute inset-0 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
           </div>
           <p class="text-xs text-text-secondary font-medium tracking-wide">
             Memuat data grafik...
@@ -62,7 +117,7 @@ const theme = computed(() => (isDark.value ? 'dark' : 'light'))
       <VChart
         v-show="!loading"
         class="w-full h-full"
-        :option="option"
+        :option="mergedOption"
         :theme="theme"
         :autoresize="true"
       />
@@ -80,10 +135,10 @@ const theme = computed(() => (isDark.value ? 'dark' : 'light'))
   --tooltip-val-color: #0f172a;
 }
 html.dark {
-  --tooltip-bg: #21262D;
-  --tooltip-border: rgba(255, 255, 255, 0.1);
-  --tooltip-title-color: #8B949E;
-  --tooltip-text-color: #F0F6FC;
+  --tooltip-bg: #111111;
+  --tooltip-border: rgba(255, 255, 255, 0.08);
+  --tooltip-title-color: #52525B;
+  --tooltip-text-color: #A1A1AA;
   --tooltip-val-color: #ffffff;
 }
 </style>

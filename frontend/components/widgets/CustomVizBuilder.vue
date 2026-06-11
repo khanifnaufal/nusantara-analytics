@@ -250,12 +250,12 @@ const chartData = computed(() => {
   let dataPoints: number[] = []
   let seriesName = ''
   let unit = ''
-  let color = '#10b981'
+  let color = '#3B82F6'
   
   if (config.metric === 'rates') {
     seriesName = `Kurs ${config.item}`
     unit = 'IDR'
-    color = '#10b981'
+    color = '#3B82F6'
     
     const rawVal = ratesStore.data?.rates[config.item]
     if (rawVal !== undefined && rawVal !== null) {
@@ -272,7 +272,7 @@ const chartData = computed(() => {
     if (item) {
       seriesName = item.name
       unit = item.currency
-      color = '#f59e0b'
+      color = '#3B82F6'
       
       const history = getQuoteHistory(item, rangeDays)
       xAxis = history.map(h => {
@@ -286,7 +286,7 @@ const chartData = computed(() => {
     if (item) {
       seriesName = item.name
       unit = item.symbol === '^JKSE' ? 'pt' : 'Rp'
-      color = '#6366f1'
+      color = '#3B82F6'
       
       const history = getQuoteHistory(item, rangeDays)
       xAxis = history.map(h => {
@@ -301,7 +301,7 @@ const chartData = computed(() => {
       const metricObj = WEATHER_METRICS.find(m => m.value === config.weatherMetric)
       seriesName = `${item.city} - ${metricObj?.label}`
       unit = metricObj?.unit || ''
-      color = '#06b6d4'
+      color = '#3B82F6'
       
       const currentVal = config.weatherMetric === 'temperature'
         ? item.temperature
@@ -363,9 +363,9 @@ const chartOption = computed(() => {
       shadowBlur: 10,
       formatter: (params: any) => {
         if (!params || params.length === 0) return ''
-        const title = params[0].axisValueLabel || params[0].name
-        let result = `<div style="font-family: Inter, sans-serif; font-size: 12px; line-height: 1.5; padding: 4px;">`
-        result += `<div style="font-weight: 600; margin-bottom: 6px; color: var(--tooltip-title-color, #8B949E);">${title}</div>`
+        const dateStr = params[0].axisValueLabel || params[0].name
+        let result = `<div style="font-family: Inter, sans-serif; font-size: 12px; line-height: 1.5; padding: 6px 8px;">`
+        result += `<div style="font-weight: 700; margin-bottom: 8px; color: var(--tooltip-title-color, #8B949E);">Tanggal: ${dateStr}</div>`
         params.forEach((item: any) => {
           let val = '-'
           if (item.value !== undefined && item.value !== null) {
@@ -382,7 +382,7 @@ const chartOption = computed(() => {
               ${item.marker}
               <span style="color: var(--tooltip-text-color, #8B949E); font-weight: 500;">${item.seriesName}</span>
             </div>
-            <span style="font-weight: 600; color: var(--tooltip-val-color, #ffffff);">${val}</span>
+            <span style="font-weight: 700; color: var(--tooltip-val-color, #ffffff);">${val}</span>
           </div>`
         })
         result += `</div>`
@@ -412,11 +412,20 @@ const chartOption = computed(() => {
       axisLabel: {
         fontFamily: 'Inter, sans-serif',
         fontSize: 10,
-        color: '#8B949E'
+        color: '#52525B'
       }
     },
     yAxis: {
       type: 'value',
+      min: (value: any) => {
+        const range = value.max - value.min;
+        const minVal = value.min - range * 0.02;
+        return value.min >= 0 && minVal < 0 ? 0 : minVal;
+      },
+      max: (value: any) => {
+        const range = value.max - value.min;
+        return value.max + range * 0.02;
+      },
       axisLine: {
         show: false
       },
@@ -426,7 +435,7 @@ const chartOption = computed(() => {
       axisLabel: {
         fontFamily: 'Inter, sans-serif',
         fontSize: 10,
-        color: '#8B949E',
+        color: '#52525B',
         formatter: (value: number) => {
           if (chart.unit === 'Rp') {
             return new Intl.NumberFormat('id-ID', { notation: 'compact', style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value)
@@ -596,9 +605,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="relative w-full overflow-hidden rounded-2xl border border-white/6 bg-[#161B22] p-5 md:p-6 transition-all duration-300 hover:border-emerald-500/30 hover:shadow-[0_0_20px_rgba(16,185,129,0.08)]">
-    <!-- Gradient Accent Top Border -->
-    <div class="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-emerald-500 to-indigo-500"></div>
+  <div class="widget-card">
 
     <!-- Header area -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 mt-1">
@@ -615,11 +622,11 @@ onMounted(async () => {
       <div class="flex items-center gap-2 self-start sm:self-auto">
         <button
           @click="copyLink()"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-white/5 bg-[#1C2128] hover:bg-[#21262D] text-text-secondary hover:text-text-primary cursor-pointer transition-all"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-transparent border border-white/10 hover:border-white/20 text-zinc-400 hover:text-white cursor-pointer transition-all"
         >
-          <span v-if="copied" class="flex items-center gap-1.5 text-emerald-400 font-bold">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          <span v-if="copied" class="flex items-center gap-1.5 text-blue-400 font-bold">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+               <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
             </svg>
             Tersalin!
           </span>
@@ -634,7 +641,7 @@ onMounted(async () => {
         <button
           @click="exportCsv()"
           :disabled="isLoading || !chartData || chartData.dataPoints.length === 0"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-white/5 bg-[#1C2128] hover:bg-[#21262D] text-text-secondary hover:text-text-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-transparent border border-white/10 hover:border-white/20 text-zinc-400 hover:text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -645,7 +652,7 @@ onMounted(async () => {
     </div>
 
     <!-- Controls Selector Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 mb-6 rounded-xl bg-[#1C2128] border border-white/5 transition-all duration-300">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 mb-6 rounded-xl bg-[#161616] border border-white/5 transition-all duration-300">
       <!-- 1. Metric Category -->
       <div class="col-span-1 md:col-span-3">
         <label class="block text-[10px] font-bold text-text-tertiary uppercase tracking-wider mb-1.5">
@@ -654,7 +661,7 @@ onMounted(async () => {
         <select
           v-model="selectedMetric"
           @change="onMetricChange()"
-          class="w-full text-xs rounded-lg border border-white/5 bg-[#161B22] px-3 py-2 text-text-primary focus:border-emerald-500 focus:outline-none transition-colors cursor-pointer"
+          class="w-full text-xs rounded-lg border border-white/5 bg-[#111111] px-3 py-2 text-text-primary focus:border-blue-500/40 focus:outline-none transition-colors cursor-pointer"
         >
           <option v-for="m in METRIC_CATEGORIES" :key="m.value" :value="m.value">
             {{ m.label }}
@@ -669,7 +676,7 @@ onMounted(async () => {
         </label>
         <select
           v-model="selectedItem"
-          class="w-full text-xs rounded-lg border border-white/5 bg-[#161B22] px-3 py-2 text-text-primary focus:border-emerald-500 focus:outline-none transition-colors cursor-pointer"
+          class="w-full text-xs rounded-lg border border-white/5 bg-[#111111] px-3 py-2 text-text-primary focus:border-blue-500/40 focus:outline-none transition-colors cursor-pointer"
         >
           <option v-for="item in itemOptions" :key="item.value" :value="item.value">
             {{ item.label }}
@@ -684,7 +691,7 @@ onMounted(async () => {
         </label>
         <select
           v-model="selectedWeatherMetric"
-          class="w-full text-xs rounded-lg border border-white/5 bg-[#161B22] px-3 py-2 text-text-primary focus:border-emerald-500 focus:outline-none transition-colors cursor-pointer"
+          class="w-full text-xs rounded-lg border border-white/5 bg-[#111111] px-3 py-2 text-text-primary focus:border-blue-500/40 focus:outline-none transition-colors cursor-pointer"
         >
           <option v-for="w in WEATHER_METRICS" :key="w.value" :value="w.value">
             {{ w.label }} ({{ w.unit }})
@@ -699,7 +706,7 @@ onMounted(async () => {
         </label>
         <select
           v-model="selectedChartType"
-          class="w-full text-xs rounded-lg border border-white/5 bg-[#161B22] px-3 py-2 text-text-primary focus:border-emerald-500 focus:outline-none transition-colors cursor-pointer"
+          class="w-full text-xs rounded-lg border border-white/5 bg-[#111111] px-3 py-2 text-text-primary focus:border-blue-500/40 focus:outline-none transition-colors cursor-pointer"
         >
           <option value="line">Line Chart</option>
           <option value="bar">Bar Chart</option>
@@ -714,7 +721,7 @@ onMounted(async () => {
         </label>
         <select
           v-model="selectedRange"
-          class="w-full text-xs rounded-lg border border-white/5 bg-[#161B22] px-3 py-2 text-text-primary focus:border-emerald-500 focus:outline-none transition-colors cursor-pointer"
+          class="w-full text-xs rounded-lg border border-white/5 bg-[#111111] px-3 py-2 text-text-primary focus:border-blue-500/40 focus:outline-none transition-colors cursor-pointer"
         >
           <option :value="3">3 Hari</option>
           <option :value="7">7 Hari</option>
@@ -725,7 +732,7 @@ onMounted(async () => {
       <div class="col-span-1 md:col-span-2 flex items-end">
         <button
           @click="applySettings()"
-          class="w-full h-[34px] inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-md shadow-emerald-500/10 hover:shadow-emerald-500/20 active:scale-[0.98] transition-all cursor-pointer"
+          class="w-full h-[34px] inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg bg-blue-500 hover:bg-blue-400 text-white shadow-md shadow-blue-500/10 hover:shadow-blue-500/20 active:scale-[0.98] transition-all cursor-pointer"
         >
           <span>⚡</span> Terapkan
         </button>
@@ -753,10 +760,10 @@ onMounted(async () => {
       </div>
 
       <!-- Compact numeric data preview table -->
-      <div v-if="!isLoading && chartData.dataPoints.length > 0" class="mt-6 overflow-x-auto border border-white/5 rounded-xl bg-[#1C2128]/50 scrollbar-thin">
+      <div v-if="!isLoading && chartData.dataPoints.length > 0" class="mt-6 overflow-x-auto border border-white/5 rounded-xl bg-[#161616]/50 scrollbar-thin">
         <table class="w-full text-left text-xs border-collapse">
           <thead>
-            <tr class="bg-[#1C2128] border-b border-white/5 text-text-tertiary font-bold tracking-wider uppercase">
+            <tr class="bg-[#161616] border-b border-white/5 text-text-tertiary font-bold tracking-wider uppercase">
               <th class="py-2 px-4">Tanggal</th>
               <th class="py-2 px-4 text-right">Nilai ({{ chartData.unit }})</th>
             </tr>
@@ -776,7 +783,7 @@ onMounted(async () => {
 <style scoped>
 /* Focus border accents */
 select:focus {
-  border-color: #10B981;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 </style>

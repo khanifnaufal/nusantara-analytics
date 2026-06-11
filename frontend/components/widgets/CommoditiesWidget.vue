@@ -94,14 +94,22 @@ const csvData = computed(() => {
 });
 
 const { exportCsv } = useExportCsv(csvData, "komoditas_harga_analytics");
+
+// Dynamic Y-axis min/max calculation with 2% padding
+const yAxisMinFn = (value: any) => {
+  const range = value.max - value.min;
+  const minVal = value.min - range * 0.02;
+  return value.min >= 0 && minVal < 0 ? 0 : minVal;
+};
+
+const yAxisMaxFn = (value: any) => {
+  const range = value.max - value.min;
+  return value.max + range * 0.02;
+};
 </script>
 
 <template>
-  <div
-    class="relative w-full overflow-hidden rounded-2xl border border-white/6 bg-[#161B22] p-5 md:p-6 transition-all duration-300 hover:border-emerald-500/30 hover:shadow-[0_0_20px_rgba(16,185,129,0.08)]"
-  >
-    <!-- Gradient Accent Top Border -->
-    <div class="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+  <div class="widget-card">
 
     <!-- Header -->
     <div class="flex items-center justify-between mb-6 mt-1">
@@ -130,7 +138,7 @@ const { exportCsv } = useExportCsv(csvData, "komoditas_harga_analytics");
           !commoditiesStore.data?.commodities ||
           commoditiesStore.data.commodities.length === 0
         "
-        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-white/5 bg-[#1C2128] hover:bg-[#21262D] text-text-secondary hover:text-text-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-transparent border border-white/10 hover:border-white/20 text-zinc-400 hover:text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -173,7 +181,7 @@ const { exportCsv } = useExportCsv(csvData, "komoditas_harga_analytics");
         <div
           v-for="n in 3"
           :key="'skeleton-comm-' + n"
-          class="h-[320px] rounded-xl border border-white/5 bg-[#1C2128] animate-pulse p-4 flex flex-col justify-between"
+          class="h-[360px] rounded-xl border border-white/5 bg-[#1C2128] animate-pulse p-4 flex flex-col justify-between"
         >
           <div>
             <div class="flex justify-between items-center mb-4">
@@ -190,7 +198,7 @@ const { exportCsv } = useExportCsv(csvData, "komoditas_harga_analytics");
           </div>
           <!-- Chart Placeholder -->
           <div
-            class="h-[160px] bg-white/5 rounded-lg w-full flex items-center justify-center"
+            class="h-[200px] bg-white/5 rounded-lg w-full flex items-center justify-center"
           >
             <span class="text-xs text-text-tertiary">Memuat grafik...</span>
           </div>
@@ -214,7 +222,7 @@ const { exportCsv } = useExportCsv(csvData, "komoditas_harga_analytics");
         <div
           v-for="item in commoditiesStore.data.commodities"
           :key="item.symbol"
-          class="rounded-xl border border-white/5 bg-[#1C2128] p-4 flex flex-col justify-between transition-all duration-300 hover:border-emerald-500/20"
+          class="rounded-xl border border-white/5 bg-[#161616] p-4 flex flex-col justify-between transition-all duration-300 hover:border-blue-500/20"
         >
           <!-- Price and Badge -->
           <div class="mb-2">
@@ -235,13 +243,15 @@ const { exportCsv } = useExportCsv(csvData, "komoditas_harga_analytics");
               <!-- Change Badge -->
               <span
                 :class="[
-                  'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border font-mono',
-                  item.changePercent >= 0
-                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                    : 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+                  'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold font-mono',
+                  item.changePercent > 0
+                    ? 'bg-green-500/15 text-green-400'
+                    : item.changePercent < 0
+                      ? 'bg-red-500/15 text-red-400'
+                      : 'bg-zinc-800 text-zinc-500',
                 ]"
               >
-                {{ item.changePercent >= 0 ? "+" : ""
+                {{ item.changePercent > 0 ? "+" : ""
                 }}{{ item.changePercent.toFixed(2) }}%
               </span>
             </div>
@@ -261,13 +271,27 @@ const { exportCsv } = useExportCsv(csvData, "komoditas_harga_analytics");
             >
               Tren 7 Hari Terakhir
             </p>
-            <div class="h-[160px] w-full">
+            <div class="h-[200px] w-full">
+              <div
+                v-if="!commoditiesStore.loading && (!item.history || item.history.length === 0)"
+                class="w-full h-full flex items-center justify-center rounded-xl bg-white/[0.02] border border-white/5 text-center"
+              >
+                <span class="text-xs text-text-tertiary font-medium">Data tidak tersedia</span>
+              </div>
               <AreaChart
+                v-else
                 v-bind="getChartProps(item.history, item.name)"
                 :loading="commoditiesStore.loading"
                 :unit="item.currency"
-                accentColor="#10B981"
+                accentColor="#3B82F6"
                 height="100%"
+                :lineWidth="2"
+                :smooth="true"
+                :areaOpacity="0.25"
+                :showOnlyFirstLastX="true"
+                :yAxisMin="yAxisMinFn"
+                :yAxisMax="yAxisMaxFn"
+                :yAxisSplitNumber="3"
               />
             </div>
           </div>

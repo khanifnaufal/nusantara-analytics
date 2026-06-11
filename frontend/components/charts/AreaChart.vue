@@ -15,6 +15,13 @@ interface Props {
   loading?: boolean
   unit?: string
   accentColor?: string
+  lineWidth?: number
+  smooth?: boolean
+  areaOpacity?: number
+  showOnlyFirstLastX?: boolean
+  yAxisMin?: any
+  yAxisMax?: any
+  yAxisSplitNumber?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -22,13 +29,20 @@ const props = withDefaults(defineProps<Props>(), {
   height: '300px',
   loading: false,
   unit: '',
-  accentColor: ''
+  accentColor: '',
+  lineWidth: 2,
+  smooth: true,
+  areaOpacity: 0.15,
+  showOnlyFirstLastX: false,
+  yAxisMin: undefined,
+  yAxisMax: undefined,
+  yAxisSplitNumber: undefined
 })
 
 const option = computed(() => {
-  const defaultColors = ['#10b981', '#6366f1', '#f59e0b', '#ec4899', '#3b82f6', '#8b5cf6']
+  const defaultColors = ['#3B82F6', '#60A5FA', '#93C5FD', '#2563EB', '#1D4ED8']
   const colors = props.accentColor
-    ? [props.accentColor, '#A78BFA', '#38BDF8', '#10B981', '#FB7185', '#F59E0B']
+    ? [props.accentColor, '#60A5FA', '#93C5FD', '#2563EB', '#1D4ED8']
     : defaultColors
 
   return {
@@ -110,11 +124,17 @@ const option = computed(() => {
       axisLabel: {
         fontFamily: 'Inter, sans-serif',
         fontSize: 10,
-        color: '#8B949E'
+        color: '#52525B',
+        interval: props.showOnlyFirstLastX
+          ? (index: number) => index === 0 || index === props.xAxis.length - 1
+          : undefined
       }
     },
     yAxis: {
       type: 'value',
+      min: props.yAxisMin,
+      max: props.yAxisMax,
+      splitNumber: props.yAxisSplitNumber,
       axisLine: {
         show: false
       },
@@ -124,7 +144,7 @@ const option = computed(() => {
       axisLabel: {
         fontFamily: 'Inter, sans-serif',
         fontSize: 10,
-        color: '#8B949E',
+        color: '#52525B',
         formatter: (value: number) => {
           return new Intl.NumberFormat(undefined, { notation: 'compact' }).format(value) + (props.unit ? ' ' + props.unit : '')
         }
@@ -142,12 +162,12 @@ const option = computed(() => {
         name: s.name,
         type: 'line',
         data: s.data,
-        smooth: true,
+        smooth: props.smooth,
         showSymbol: false,
         symbolSize: 6,
         color: color,
         areaStyle: {
-          opacity: 0.15,
+          opacity: props.areaOpacity,
           color: {
             type: 'linear',
             x: 0,
@@ -155,7 +175,7 @@ const option = computed(() => {
             x2: 0,
             y2: 1,
             colorStops: [
-              { offset: 0, color: color },
+              { offset: 0, color: 'rgba(59, 130, 246, 0.2)' },
               { offset: 1, color: 'transparent' }
             ],
             global: false
@@ -168,7 +188,7 @@ const option = computed(() => {
           }
         },
         lineStyle: {
-          width: 2
+          width: props.lineWidth
         }
       }
     })

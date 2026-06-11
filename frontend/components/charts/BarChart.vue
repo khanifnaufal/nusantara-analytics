@@ -27,8 +27,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const option = computed(() => {
   const colors = props.accentColor
-    ? [props.accentColor, '#A78BFA', '#38BDF8', '#10B981', '#FB7185', '#F59E0B']
-    : ['#10b981', '#6366f1', '#f59e0b', '#ec4899', '#3b82f6', '#8b5cf6']
+    ? [props.accentColor, '#60A5FA', '#93C5FD', '#2563EB', '#1D4ED8']
+    : ['#3B82F6', '#60A5FA', '#93C5FD', '#2563EB', '#1D4ED8']
 
   return {
     backgroundColor: 'transparent',
@@ -109,7 +109,7 @@ const option = computed(() => {
       axisLabel: {
         fontFamily: 'Inter, sans-serif',
         fontSize: 10,
-        color: '#8B949E'
+        color: '#52525B'
       }
     },
     yAxis: {
@@ -123,7 +123,7 @@ const option = computed(() => {
       axisLabel: {
         fontFamily: 'Inter, sans-serif',
         fontSize: 10,
-        color: '#8B949E',
+        color: '#52525B',
         formatter: (value: number) => {
           return new Intl.NumberFormat(undefined, { notation: 'compact' }).format(value) + (props.unit ? ' ' + props.unit : '')
         }

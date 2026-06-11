@@ -106,9 +106,7 @@ const { exportCsv } = useExportCsv(csvData, 'kurs_idr_analytics')
 </script>
 
 <template>
-  <div class="relative w-full overflow-hidden rounded-2xl border border-white/6 bg-[#161B22] p-5 md:p-6 transition-all duration-300 hover:border-amber-500/30 hover:shadow-[0_0_20px_rgba(245,158,11,0.08)]">
-    <!-- Gradient Accent Top Border -->
-    <div class="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-amber-500 to-yellow-500"></div>
+  <div class="widget-card">
 
     <!-- Header Area -->
     <div class="flex items-center justify-between mb-6 mt-1">
@@ -125,7 +123,7 @@ const { exportCsv } = useExportCsv(csvData, 'kurs_idr_analytics')
       <button
         @click="exportCsv()"
         :disabled="formattedRates.length === 0"
-        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-white/5 bg-[#1C2128] hover:bg-[#21262D] text-text-secondary hover:text-text-primary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-transparent border border-white/10 hover:border-white/20 text-zinc-400 hover:text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -191,10 +189,12 @@ const { exportCsv } = useExportCsv(csvData, 'kurs_idr_analytics')
               <span 
                 v-if="rate.rawRate !== '-'"
                 :class="[
-                  'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold font-mono border',
-                  rate.changePercent >= 0 
-                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
-                    : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                  'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold font-mono',
+                  rate.changePercent > 0 
+                    ? 'bg-green-500/15 text-green-400' 
+                    : rate.changePercent < 0
+                      ? 'bg-red-500/15 text-red-400'
+                      : 'bg-zinc-800 text-zinc-500'
                 ]"
               >
                 {{ rate.changeText }}

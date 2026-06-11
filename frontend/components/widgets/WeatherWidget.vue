@@ -29,35 +29,16 @@ const getWeatherEmoji = (code: number, desc: string) => {
 
 // Helper to get card styles based on temperature
 const getTempColorClass = (temp: number) => {
-  if (temp < 24) {
-    // Biru (<24)
-    return {
-      border: 'hover:border-[#38BDF8]/30 hover:shadow-[0_0_15px_rgba(56,189,248,0.08)]',
-      tempText: 'text-[#38BDF8]',
-      badge: 'bg-[#38BDF8]/10 text-[#38BDF8] border-[#38BDF8]/20'
-    }
-  } else if (temp <= 30) {
-    // Hijau (24-30)
-    return {
-      border: 'hover:border-[#10B981]/30 hover:shadow-[0_0_15px_rgba(16,185,129,0.08)]',
-      tempText: 'text-[#10B981]',
-      badge: 'bg-[#10B981]/10 text-[#10B981] border-[#10B981]/20'
-    }
-  } else {
-    // Oranye (>30)
-    return {
-      border: 'hover:border-[#F59E0B]/30 hover:shadow-[0_0_15px_rgba(245,158,11,0.08)]',
-      tempText: 'text-[#F59E0B]',
-      badge: 'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/20'
-    }
+  return {
+    border: 'hover:border-blue-500/20 hover:shadow-[0_0_15px_rgba(59,130,246,0.02)]',
+    tempText: 'text-white',
+    badge: 'bg-zinc-800/80 text-zinc-400 border-white/5'
   }
 }
 </script>
 
 <template>
-  <div class="relative w-full overflow-hidden rounded-2xl border border-white/6 bg-[#161B22] p-5 md:p-6 transition-all duration-300 hover:border-sky-400/30 hover:shadow-[0_0_20px_rgba(56,189,248,0.08)]">
-    <!-- Gradient Accent Top Border -->
-    <div class="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-sky-400 to-blue-500"></div>
+  <div class="widget-card">
 
     <!-- Header -->
     <div class="mb-6 mt-1">
@@ -84,7 +65,7 @@ const getTempColorClass = (temp: number) => {
         <div 
           v-for="n in 6" 
           :key="'skeleton-weather-'+n" 
-          class="h-[140px] rounded-xl border border-white/5 bg-[#1C2128] animate-pulse p-4 flex flex-col justify-between"
+          class="h-[140px] rounded-xl border border-white/5 bg-[#111111] animate-pulse p-4 flex flex-col justify-between"
         >
           <div class="flex items-start justify-between">
             <div class="h-4 bg-white/5 rounded w-1/2"></div>
@@ -109,7 +90,7 @@ const getTempColorClass = (temp: number) => {
           v-for="city in weatherStore.data.cities"
           :key="city.city"
           :class="[
-            'relative rounded-xl border border-white/5 bg-[#1C2128] p-4 transition-all duration-300 flex flex-col justify-between h-[140px]',
+            'relative rounded-xl border border-white/5 bg-[#161616] p-4 transition-all duration-300 flex flex-col justify-between h-[140px]',
             getTempColorClass(city.temperature).border
           ]"
         >
