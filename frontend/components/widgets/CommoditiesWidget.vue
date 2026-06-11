@@ -95,17 +95,61 @@ const csvData = computed(() => {
 
 const { exportCsv } = useExportCsv(csvData, "komoditas_harga_analytics");
 
-// Dynamic Y-axis min/max calculation with 2% padding
+// Dynamic Y-axis min/max calculation with 5% padding
 const yAxisMinFn = (value: any) => {
-  const range = value.max - value.min;
-  const minVal = value.min - range * 0.02;
-  return value.min >= 0 && minVal < 0 ? 0 : minVal;
-};
+  if (!value || typeof value.min !== 'number' || isNaN(value.min) || !isFinite(value.min)) {
+    return 'dataMin'
+  }
+  const range = value.max - value.min
+  if (range === 0) return value.min * 0.95
+  const minVal = value.min - range * 0.05
+  return value.min >= 0 && minVal < 0 ? 0 : minVal
+}
 
 const yAxisMaxFn = (value: any) => {
-  const range = value.max - value.min;
-  return value.max + range * 0.02;
-};
+  if (!value || typeof value.max !== 'number' || isNaN(value.max) || !isFinite(value.max)) {
+    return 'dataMax'
+  }
+  const range = value.max - value.min
+  if (range === 0) return value.max * 1.05
+  return value.max + range * 0.05
+}
+
+interface CommodityDisplayItem {
+  symbol: string
+  name: string
+  price: number
+  change: number
+  changePercent: number
+  currency: string
+  history: { timestamp: string; close: number }[]
+  lastUpdated?: string
+  isEmptyPlaceholder?: boolean
+}
+
+const displayCommodities = computed((): CommodityDisplayItem[] => {
+  if (!commoditiesStore.data?.commodities || commoditiesStore.data.commodities.length === 0) {
+    return [];
+  }
+  
+  const list = [...commoditiesStore.data.commodities] as CommodityDisplayItem[];
+  const hasCpo = list.some(c => c.symbol === 'PALM.KL' || c.name.toLowerCase() === 'cpo');
+  
+  if (!hasCpo) {
+    list.push({
+      symbol: 'PALM.KL',
+      name: 'CPO',
+      price: 0,
+      change: 0,
+      changePercent: 0,
+      currency: 'MYR',
+      history: [],
+      isEmptyPlaceholder: true
+    });
+  }
+  
+  return list;
+});
 </script>
 
 <template>
@@ -170,7 +214,7 @@ const yAxisMaxFn = (value: any) => {
     </div>
 
     <!-- Commodities Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 gap-4">
       <!-- Loading Skeleton State -->
       <template
         v-if="
@@ -181,36 +225,29 @@ const yAxisMaxFn = (value: any) => {
         <div
           v-for="n in 3"
           :key="'skeleton-comm-' + n"
-          class="h-[360px] rounded-xl border border-white/5 bg-[#1C2128] animate-pulse p-4 flex flex-col justify-between"
+          class="min-h-[120px] rounded-xl border border-white/5 bg-bg-subcard animate-pulse p-4 flex gap-4 justify-between"
         >
-          <div>
-            <div class="flex justify-between items-center mb-4">
-              <div
-                class="h-4 bg-white/5 rounded w-1/3"
-              ></div>
-              <div
-                class="h-4 bg-white/5 rounded w-1/4"
-              ></div>
+          <!-- Left Skeleton Info -->
+          <div class="w-28 shrink-0 flex flex-col justify-between">
+            <div class="space-y-2">
+              <div class="h-4 bg-white/5 rounded w-2/3"></div>
+              <div class="h-3 bg-white/5 rounded w-1/2"></div>
             </div>
-            <div
-              class="h-6 bg-white/5 rounded w-1/2 mb-4"
-            ></div>
+            <div class="space-y-2 mt-4">
+              <div class="h-6 bg-white/5 rounded w-3/4"></div>
+              <div class="h-4 bg-white/5 rounded w-1/2"></div>
+            </div>
           </div>
-          <!-- Chart Placeholder -->
-          <div
-            class="h-[200px] bg-white/5 rounded-lg w-full flex items-center justify-center"
-          >
-            <span class="text-xs text-text-tertiary">Memuat grafik...</span>
-          </div>
+          <!-- Right Skeleton Chart -->
+          <div class="grow bg-white/5 rounded-lg h-[80px] self-center"></div>
         </div>
       </template>
 
       <!-- Empty State -->
       <div
         v-else-if="
-          !commoditiesStore.data ||
-          !commoditiesStore.data.commodities ||
-          commoditiesStore.data.commodities.length === 0
+          !displayCommodities ||
+          displayCommodities.length === 0
         "
         class="col-span-full py-12 text-center text-text-tertiary"
       >
@@ -220,81 +257,96 @@ const yAxisMaxFn = (value: any) => {
       <!-- Real Cards -->
       <template v-else>
         <div
-          v-for="item in commoditiesStore.data.commodities"
+          v-for="item in displayCommodities"
           :key="item.symbol"
-          class="rounded-xl border border-white/5 bg-[#161616] p-4 flex flex-col justify-between transition-all duration-300 hover:border-blue-500/20"
+          class="rounded-xl border border-white/5 bg-bg-subcard p-4 flex gap-4 transition-all duration-300 hover:border-blue-500/20 min-h-[120px]"
         >
-          <!-- Price and Badge -->
-          <div class="mb-2">
-            <div class="flex items-center justify-between mb-1">
+          <template v-if="item.isEmptyPlaceholder">
+            <!-- Left Info -->
+            <div class="flex flex-col justify-between w-28 shrink-0">
               <div>
-                <h4
-                  class="font-bold text-sm text-text-primary tracking-tight"
-                >
+                <h4 class="font-bold text-sm text-text-primary tracking-tight">
                   {{ item.name }}
                 </h4>
-                <p
-                  class="text-[9px] text-text-tertiary font-semibold uppercase font-mono tracking-wider"
-                >
+                <p class="text-[9px] text-text-tertiary font-semibold uppercase font-mono tracking-wider">
+                  {{ item.symbol }}
+                </p>
+              </div>
+            </div>
+            <!-- Right Centered Message -->
+            <div class="grow flex items-center justify-center border-l border-white/5 pl-4 py-8">
+              <span class="text-xs text-text-tertiary font-medium text-center">
+                Data CPO sedang tidak tersedia
+              </span>
+            </div>
+          </template>
+
+          <template v-else>
+            <!-- Left: Info -->
+            <div class="flex flex-col justify-between w-28 shrink-0">
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <h4 class="font-bold text-sm text-text-primary tracking-tight truncate">
+                    {{ item.name }}
+                  </h4>
+                </div>
+                <p class="text-[9px] text-text-tertiary font-semibold uppercase font-mono tracking-wider">
                   {{ item.symbol }}
                 </p>
               </div>
 
-              <!-- Change Badge -->
-              <span
-                :class="[
-                  'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold font-mono',
-                  item.changePercent > 0
-                    ? 'bg-green-500/15 text-green-400'
-                    : item.changePercent < 0
-                      ? 'bg-red-500/15 text-red-400'
-                      : 'bg-zinc-800 text-zinc-500',
-                ]"
-              >
-                {{ item.changePercent > 0 ? "+" : ""
-                }}{{ item.changePercent.toFixed(2) }}%
-              </span>
-            </div>
-
-            <!-- Price -->
-            <div
-              class="text-xl font-extrabold text-text-primary tracking-tight font-mono mt-1"
-            >
-              {{ formatPrice(item.price, item.currency) }}
-            </div>
-          </div>
-
-          <!-- History Chart (Last 7 Days) -->
-          <div class="w-full mt-2 border-t border-white/5 pt-3">
-            <p
-              class="text-[9px] text-text-tertiary font-bold uppercase tracking-wider mb-2"
-            >
-              Tren 7 Hari Terakhir
-            </p>
-            <div class="h-[200px] w-full">
-              <div
-                v-if="!commoditiesStore.loading && (!item.history || item.history.length === 0)"
-                class="w-full h-full flex items-center justify-center rounded-xl bg-white/[0.02] border border-white/5 text-center"
-              >
-                <span class="text-xs text-text-tertiary font-medium">Data tidak tersedia</span>
+              <div class="mt-2">
+                <div class="text-lg font-mono font-bold text-text-primary tracking-tight">
+                  {{ formatPrice(item.price, item.currency) }}
+                </div>
+                <div class="mt-1">
+                  <span
+                    :class="[
+                      'inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold font-mono',
+                      item.changePercent > 0
+                        ? 'bg-green-500/15 text-green-400'
+                        : item.changePercent < 0
+                          ? 'bg-red-500/15 text-red-400'
+                          : 'bg-zinc-800 text-zinc-500',
+                    ]"
+                  >
+                    {{ item.changePercent > 0 ? "+" : "" }}{{ item.changePercent.toFixed(2) }}%
+                  </span>
+                </div>
               </div>
-              <AreaChart
-                v-else
-                v-bind="getChartProps(item.history, item.name)"
-                :loading="commoditiesStore.loading"
-                :unit="item.currency"
-                accentColor="#3B82F6"
-                height="100%"
-                :lineWidth="2"
-                :smooth="true"
-                :areaOpacity="0.25"
-                :showOnlyFirstLastX="true"
-                :yAxisMin="yAxisMinFn"
-                :yAxisMax="yAxisMaxFn"
-                :yAxisSplitNumber="3"
-              />
             </div>
-          </div>
+
+            <!-- Right: Sparkline Chart -->
+            <div class="grow h-[80px] self-center border-l border-white/5 pl-4">
+              <p class="text-[9px] text-text-tertiary font-bold uppercase tracking-wider mb-1">
+                TREN 7 HARI
+              </p>
+              <div class="h-[65px] w-full">
+                <div
+                  v-if="!commoditiesStore.loading && (!item.history || item.history.length === 0)"
+                  class="w-full h-full flex items-center justify-center rounded-lg bg-white/1 text-center"
+                >
+                  <span class="text-[10px] text-text-tertiary font-medium">Data tidak tersedia</span>
+                </div>
+                <AreaChart
+                  v-else
+                  v-bind="getChartProps(item.history, item.name)"
+                  :loading="commoditiesStore.loading"
+                  :unit="item.currency"
+                  accentColor="#3B82F6"
+                  height="100%"
+                  :lineWidth="1.5"
+                  :smooth="true"
+                  :areaOpacity="0.1"
+                  :showOnlyFirstLastX="true"
+                  :yAxisMin="yAxisMinFn"
+                  :yAxisMax="yAxisMaxFn"
+                  :yAxisSplitNumber="2"
+                  :isSparkline="true"
+                />
+              </div>
+            </div>
+          </template>
         </div>
       </template>
     </div>

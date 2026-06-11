@@ -44,28 +44,28 @@ const formatRelativeTime = (timeStr: string) => {
 // Get magnitude color classes
 const getMagnitudeStyle = (magnitude: number) => {
   if (magnitude < 4.0) {
-    // 3-4 (minor)
+    // < 4.0 (minor - Emerald)
     return {
-      badge: 'bg-zinc-800 text-zinc-400 border-white/5',
+      badge: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20',
       text: 'font-semibold',
       pulse: false
     }
   } else if (magnitude < 5.0) {
-    // 4-5 (moderate)
+    // 4.0 - 5.0 (moderate - Amber)
     return {
-      badge: 'bg-zinc-700 text-zinc-300 border-white/5',
+      badge: 'bg-amber-500/15 text-amber-400 border-amber-500/20',
       text: 'font-bold',
       pulse: false
     }
   } else if (magnitude < 6.0) {
-    // 5-6 (strong)
+    // 5.0 - 6.0 (strong - Orange)
     return {
-      badge: 'bg-zinc-600 text-white border-white/5',
+      badge: 'bg-orange-500/15 text-orange-400 border-orange-500/25',
       text: 'font-extrabold',
       pulse: false
     }
   } else {
-    // 6+ (major)
+    // 6.0+ (major - Red)
     return {
       badge: 'bg-red-500/20 text-red-400 border-red-500/30',
       text: 'font-black',
@@ -106,8 +106,8 @@ const getMagnitudeStyle = (magnitude: number) => {
     <!-- Quakes List Container -->
     <div class="pr-1 select-none">
       <!-- Loading Skeleton State -->
-      <div v-if="quakesStore.loading && (!quakesStore.data || !quakesStore.data.quakes)" class="space-y-3 animate-pulse">
-        <div v-for="n in 5" :key="'skeleton-quake-'+n" class="flex items-center gap-4 p-4 rounded-xl border border-white/5 bg-[#111111]">
+      <div v-if="quakesStore.loading && (!quakesStore.data || !quakesStore.data.quakes)" class="space-y-2 animate-pulse">
+        <div v-for="n in 5" :key="'skeleton-quake-'+n" class="flex items-center gap-4 p-4 rounded-xl border border-white/5 bg-bg-card">
           <div class="h-10 w-10 bg-white/5 rounded-lg"></div>
           <div class="flex-1 space-y-2">
             <div class="h-4 bg-white/5 rounded w-2/3"></div>
@@ -123,69 +123,71 @@ const getMagnitudeStyle = (magnitude: number) => {
       </div>
 
       <!-- Quake List Items (scrollable viewport max-h-[400px]) -->
-      <div v-else class="max-h-[400px] overflow-y-auto scrollbar-thin pr-1.5 space-y-3">
+      <div v-else class="max-h-[400px] overflow-y-auto scrollbar-thin pr-1.5 space-y-2">
         <div
           v-for="quake in quakesStore.data.quakes"
           :key="quake.id"
-          class="flex items-center gap-3.5 p-3 md:p-3.5 rounded-xl border border-white/5 bg-[#161616] hover:bg-white/[0.02] transition-all duration-300"
+          class="flex items-center gap-3.5 p-3 md:p-3.5 rounded-xl border border-white/5 bg-bg-subcard hover:bg-white/2 transition-all duration-300"
         >
-          <!-- Magnitude Badge (Left) -->
+          <!-- Magnitude Badge (Left) - Center aligned relative to card -->
           <div 
             :class="[
-              'flex flex-col items-center justify-center h-12 w-12 rounded-xl border font-mono text-center flex-shrink-0 transition-transform duration-300 hover:scale-105',
+              'flex items-center justify-center min-w-[56px] h-[56px] rounded-xl border font-mono text-lg font-bold shrink-0 transition-transform duration-300 hover:scale-105 self-center',
               getMagnitudeStyle(quake.magnitude).badge,
               getMagnitudeStyle(quake.magnitude).pulse ? 'animate-major-pulse' : ''
             ]"
           >
-            <span class="text-[9px] font-semibold uppercase tracking-tighter opacity-80">Mag</span>
-            <span :class="['text-base tracking-tighter leading-tight', getMagnitudeStyle(quake.magnitude).text]">
-              {{ quake.magnitude.toFixed(1) }}
-            </span>
+            {{ quake.magnitude.toFixed(1) }}
           </div>
 
-          <!-- Location, Time and Alerts (Middle) -->
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2 flex-wrap mb-1">
-              <span class="text-xs font-bold text-text-primary truncate max-w-full">
-                {{ quake.place }}
-              </span>
-              
-              <!-- Tsunami Warning Badge -->
-              <span 
-                v-if="quake.tsunami === 1" 
-                class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase bg-rose-500/10 text-rose-450 border border-rose-500/20 animate-pulse"
+          <!-- Content Wrapper (Middle + Right) -->
+          <div class="flex-1 min-w-0 flex items-start justify-between gap-2.5">
+            <!-- Location and Details (Left) -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap mb-1">
+                <span class="text-xs font-bold text-text-primary line-clamp-2 max-w-full">
+                  {{ quake.place }}
+                </span>
+                
+                <!-- Tsunami Warning Badge -->
+                <span 
+                  v-if="quake.tsunami === 1" 
+                  class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase bg-rose-500/10 text-rose-450 border border-rose-500/20 animate-pulse"
+                >
+                  ⚠️ Tsunami
+                </span>
+              </div>
+
+              <!-- Details: Depth, Time -->
+              <div class="flex flex-col gap-0.5 text-xs text-text-secondary mt-1">
+                <span class="flex items-center gap-1">
+                  <span>📍</span>
+                  <span>Kedalaman: <strong class="text-text-primary font-bold">{{ quake.depth }} km</strong></span>
+                </span>
+                
+                <span class="flex items-center gap-1">
+                  <span>⏱️</span>
+                  <ClientOnly>
+                    <span>{{ formatRelativeTime(quake.time) }}</span>
+                  </ClientOnly>
+                </span>
+              </div>
+            </div>
+
+            <!-- USGS Link (Right) -->
+            <div class="shrink-0 mt-0.5">
+              <a 
+                :href="quake.url" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                class="inline-flex items-center justify-center p-2 rounded-lg bg-transparent border border-white/10 hover:border-white/20 text-zinc-400 hover:text-white transition-all shadow-xs"
+                title="Lihat Detail di USGS"
               >
-                ⚠️ Tsunami
-              </span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
             </div>
-
-            <!-- Details: Depth, Time -->
-            <div class="flex gap-x-4 gap-y-1 flex-wrap text-[10px] font-medium text-text-secondary">
-              <span class="flex items-center gap-1.5">
-                <span>📍</span>
-                <span>Kedalaman: <strong class="text-text-primary font-bold">{{ quake.depth }} km</strong></span>
-              </span>
-              
-              <span class="flex items-center gap-1.5">
-                <span>⏱️</span>
-                <span>{{ formatRelativeTime(quake.time) }}</span>
-              </span>
-            </div>
-          </div>
-
-          <!-- USGS Link (Right) -->
-          <div class="flex-shrink-0">
-            <a 
-              :href="quake.url" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              class="inline-flex items-center justify-center p-2 rounded-lg bg-transparent border border-white/10 hover:border-white/20 text-zinc-400 hover:text-white transition-all shadow-xs"
-              title="Lihat Detail di USGS"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </a>
           </div>
         </div>
       </div>

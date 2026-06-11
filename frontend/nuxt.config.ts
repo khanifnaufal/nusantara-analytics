@@ -6,6 +6,14 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ['@pinia/nuxt', '@vueuse/nuxt'],
   css: ['~/assets/css/main.css'],
+  app: {
+    head: {
+      title: 'Nusantara Analytics',
+      meta: [
+        { name: 'description', content: 'Dashboard Pemantauan Finansial, Cuaca, Komoditas Pasar, & Aktivitas Seismik Indonesia.' }
+      ]
+    }
+  },
   nitro: {
     preset: 'vercel'
   },

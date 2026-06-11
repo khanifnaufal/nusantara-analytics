@@ -88,6 +88,19 @@ func FetchMarket() (*models.MarketResponse, bool, error) {
 				LastUpdated:   time.Now(),
 			}
 
+			// If Yahoo Finance returns 0 or no change, calculate it from history
+			if (quote.Change == 0 || quote.ChangePercent == 0) && len(history) >= 1 {
+				latest := quote.Price
+				prev := history[len(history)-1].Close
+				if len(history) >= 2 && latest == prev {
+					prev = history[len(history)-2].Close
+				}
+				if prev != 0 {
+					quote.Change = latest - prev
+					quote.ChangePercent = (quote.Change / prev) * 100
+				}
+			}
+
 			mu.Lock()
 			quotes[idx] = quote
 			mu.Unlock()

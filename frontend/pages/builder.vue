@@ -2,6 +2,10 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import CustomVizBuilder from '~/components/widgets/CustomVizBuilder.vue'
 
+useHead({
+  title: 'Nusantara Analytics - Custom Builder'
+})
+
 // Live clock state
 const liveTime = ref('')
 let clockTimer: any = null
@@ -24,18 +28,21 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="relative min-h-screen bg-[#0A0A0A] text-slate-100 p-4 sm:p-6 md:p-8">
+  <div class="relative min-h-screen bg-bg-dark text-slate-100 p-4 sm:p-6 md:p-8">
     <!-- Decorative background glow blob -->
     <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-blue-500/5 rounded-full blur-3xl pointer-events-none z-0"></div>
 
     <div class="max-w-7xl mx-auto space-y-8 relative z-10">
       
       <!-- Top Header Area - Sticky Navbar style -->
-      <header class="sticky top-4 z-40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 md:p-5 rounded-2xl border-b border-white/5 bg-[#0A0A0A]/90 backdrop-blur-xl shadow-lg shadow-black/10">
+      <header class="sticky top-4 z-40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 md:p-5 rounded-2xl border-b border-white/5 bg-bg-dark/90 backdrop-blur-xl shadow-lg shadow-black/10">
         <div>
           <div class="flex items-center gap-2.5">
-            <span class="text-2xl" aria-hidden="true">🇮🇩</span>
-            <h1 class="text-xl md:text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2" class="w-6 h-4 rounded-xs border border-white/10 shrink-0" aria-hidden="true">
+              <rect width="3" height="1" fill="#FF0000"/>
+              <rect y="1" width="3" height="1" fill="#FFFFFF"/>
+            </svg>
+            <h1 class="text-xl md:text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-linear-to-r from-white to-slate-400">
               Nusantara Analytics
             </h1>
           </div>
@@ -55,7 +62,7 @@ onUnmounted(() => {
           </NuxtLink>
 
           <!-- Live status pill -->
-          <div class="inline-flex items-center gap-2 bg-[#111111] border border-white/5 py-1.5 px-3.5 rounded-xl text-xs font-bold text-text-secondary shadow-sm">
+          <div class="inline-flex items-center gap-2 bg-bg-card border border-white/5 py-1.5 px-3.5 rounded-xl text-xs font-bold text-text-secondary shadow-sm">
             <span class="relative flex h-2 w-2">
               <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
               <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>

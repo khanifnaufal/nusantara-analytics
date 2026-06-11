@@ -22,6 +22,7 @@ interface Props {
   yAxisMin?: any
   yAxisMax?: any
   yAxisSplitNumber?: number
+  isSparkline?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -36,7 +37,8 @@ const props = withDefaults(defineProps<Props>(), {
   showOnlyFirstLastX: false,
   yAxisMin: undefined,
   yAxisMax: undefined,
-  yAxisSplitNumber: undefined
+  yAxisSplitNumber: undefined,
+  isSparkline: false
 })
 
 const option = computed(() => {
@@ -91,7 +93,7 @@ const option = computed(() => {
       }
     },
     legend: {
-      show: props.data.length > 1,
+      show: props.data.length > 1 && !props.isSparkline,
       bottom: 0,
       left: 'center',
       icon: 'circle',
@@ -101,19 +103,21 @@ const option = computed(() => {
         color: '#8B949E'
       }
     },
-    grid: {
-      top: props.title ? 50 : 15,
-      left: '2%',
-      right: '2%',
-      bottom: props.data.length > 1 ? 35 : 15,
-      containLabel: true
-    },
+    grid: props.isSparkline
+      ? { top: 2, bottom: 2, left: 2, right: 2, containLabel: false }
+      : {
+          top: props.title ? 50 : 15,
+          left: '2%',
+          right: '2%',
+          bottom: props.data.length > 1 ? 35 : 15,
+          containLabel: true
+        },
     xAxis: {
       type: 'category',
       boundaryGap: false,
       data: props.xAxis,
       axisLine: {
-        show: true,
+        show: !props.isSparkline,
         lineStyle: {
           color: 'rgba(255, 255, 255, 0.08)'
         }
@@ -122,6 +126,7 @@ const option = computed(() => {
         show: false
       },
       axisLabel: {
+        show: !props.isSparkline,
         fontFamily: 'Inter, sans-serif',
         fontSize: 10,
         color: '#52525B',
@@ -132,6 +137,7 @@ const option = computed(() => {
     },
     yAxis: {
       type: 'value',
+      scale: true,
       min: props.yAxisMin,
       max: props.yAxisMax,
       splitNumber: props.yAxisSplitNumber,
@@ -142,14 +148,19 @@ const option = computed(() => {
         show: false
       },
       axisLabel: {
+        show: !props.isSparkline,
         fontFamily: 'Inter, sans-serif',
         fontSize: 10,
         color: '#52525B',
         formatter: (value: number) => {
-          return new Intl.NumberFormat(undefined, { notation: 'compact' }).format(value) + (props.unit ? ' ' + props.unit : '')
+          const formatted = Math.abs(value) >= 1000000
+            ? new Intl.NumberFormat('id-ID', { notation: 'compact', maximumFractionDigits: 1 }).format(value)
+            : new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(value)
+          return formatted + (props.unit ? ' ' + props.unit : '')
         }
       },
       splitLine: {
+        show: !props.isSparkline,
         lineStyle: {
           color: 'rgba(255, 255, 255, 0.04)',
           type: 'dashed'

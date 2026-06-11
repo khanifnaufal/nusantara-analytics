@@ -129,6 +129,7 @@ const option = computed(() => {
     },
     yAxis: {
       type: 'value',
+      scale: true,
       min: props.yAxisMin,
       max: props.yAxisMax,
       splitNumber: props.yAxisSplitNumber,
@@ -143,7 +144,10 @@ const option = computed(() => {
         fontSize: 10,
         color: '#52525B',
         formatter: (value: number) => {
-          return new Intl.NumberFormat(undefined, { notation: 'compact' }).format(value) + (props.unit ? ' ' + props.unit : '')
+          const formatted = Math.abs(value) >= 1000000
+            ? new Intl.NumberFormat('id-ID', { notation: 'compact', maximumFractionDigits: 1 }).format(value)
+            : new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(value)
+          return formatted + (props.unit ? ' ' + props.unit : '')
         }
       },
       splitLine: {

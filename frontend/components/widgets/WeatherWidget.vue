@@ -65,14 +65,14 @@ const getTempColorClass = (temp: number) => {
         <div 
           v-for="n in 6" 
           :key="'skeleton-weather-'+n" 
-          class="h-[140px] rounded-xl border border-white/5 bg-[#111111] animate-pulse p-4 flex flex-col justify-between"
+          class="min-h-[160px] rounded-xl border border-white/5 bg-bg-card animate-pulse p-4 flex flex-col justify-between"
         >
           <div class="flex items-start justify-between">
             <div class="h-4 bg-white/5 rounded w-1/2"></div>
             <div class="h-4 bg-white/5 rounded w-1/4"></div>
           </div>
           <div class="h-8 bg-white/5 rounded w-1/3 my-2 mx-auto"></div>
-          <div class="flex justify-between gap-4 mt-2">
+          <div class="flex justify-between gap-4 mt-auto">
             <div class="h-3 bg-white/5 rounded w-1/3"></div>
             <div class="h-3 bg-white/5 rounded w-1/3"></div>
           </div>
@@ -90,13 +90,13 @@ const getTempColorClass = (temp: number) => {
           v-for="city in weatherStore.data.cities"
           :key="city.city"
           :class="[
-            'relative rounded-xl border border-white/5 bg-[#161616] p-4 transition-all duration-300 flex flex-col justify-between h-[140px]',
+            'relative rounded-xl border border-white/5 bg-bg-subcard p-4 transition-all duration-300 flex flex-col justify-between min-h-[160px]',
             getTempColorClass(city.temperature).border
           ]"
         >
           <!-- Top Area: City Name & Weather Description Badge -->
           <div class="flex items-start justify-between gap-2">
-            <h4 class="font-bold text-sm text-text-primary tracking-tight">
+            <h4 class="text-sm font-semibold text-text-primary tracking-tight">
               {{ city.city }}
             </h4>
             
@@ -107,16 +107,16 @@ const getTempColorClass = (temp: number) => {
 
           <!-- Middle Area: Temperature + Emoji Icon -->
           <div class="flex items-center justify-center gap-3 my-1">
-            <span class="text-3xl animate-bounce-subtle" aria-hidden="true">
+            <span class="text-4xl animate-bounce-subtle" aria-hidden="true">
               {{ getWeatherEmoji(city.weatherCode, city.weatherDesc) }}
             </span>
-            <span class="text-3xl font-extrabold tracking-tighter" :class="getTempColorClass(city.temperature).tempText">
+            <span class="text-4xl font-mono font-bold tracking-tighter" :class="getTempColorClass(city.temperature).tempText">
               {{ Math.round(city.temperature) }}°C
             </span>
           </div>
 
           <!-- Bottom Area: Humidity & Wind Speed -->
-          <div class="grid grid-cols-2 border-t border-white/5 pt-2.5 text-[10px] font-medium text-text-secondary">
+          <div class="grid grid-cols-2 border-t border-white/5 pt-2.5 text-[10px] font-medium text-text-secondary mt-auto">
             <div class="flex items-center gap-1.5 justify-start">
               <span>💧</span>
               <span class="text-text-primary font-bold">{{ city.humidity }}%</span>

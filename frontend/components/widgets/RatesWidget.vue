@@ -103,6 +103,19 @@ const csvData = computed(() => {
 })
 
 const { exportCsv } = useExportCsv(csvData, 'kurs_idr_analytics')
+
+const getCountryCode = (code: string) => {
+  const mapping: Record<string, string> = {
+    USD: 'us',
+    EUR: 'eu',
+    SGD: 'sg',
+    JPY: 'jp',
+    MYR: 'my',
+    SAR: 'sa',
+    AUD: 'au'
+  }
+  return mapping[code] || 'un'
+}
 </script>
 
 <template>
@@ -145,18 +158,18 @@ const { exportCsv } = useExportCsv(csvData, 'kurs_idr_analytics')
       <table class="w-full text-left text-xs border-collapse">
         <thead>
           <tr class="border-b border-white/5 text-text-secondary uppercase tracking-wider">
-            <th class="py-2.5 px-4 font-semibold text-left">Mata Uang</th>
-            <th class="py-2.5 px-4 text-right font-semibold">1 IDR</th>
-            <th class="py-2.5 px-4 text-right font-semibold">1 Valas</th>
-            <th class="py-2.5 px-4 text-right font-semibold">Perubahan</th>
+            <th class="py-3 px-4 font-semibold text-left">Mata Uang</th>
+            <th class="py-3 px-4 text-right font-semibold">1 IDR</th>
+            <th class="py-3 px-4 text-right font-semibold">1 Valas</th>
+            <th class="py-3 px-4 text-right font-semibold">Perubahan</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-white/5">
           <tr v-if="ratesStore.loading && formattedRates.length === 0" v-for="n in 7" :key="'skeleton-'+n" class="animate-pulse">
-            <td class="py-3.5 px-4"><div class="h-4 bg-white/5 rounded w-2/3"></div></td>
-            <td class="py-3.5 px-4"><div class="h-4 bg-white/5 rounded w-1/2 ml-auto"></div></td>
-            <td class="py-3.5 px-4"><div class="h-4 bg-white/5 rounded w-1/2 ml-auto"></div></td>
-            <td class="py-3.5 px-4"><div class="h-4 bg-white/5 rounded w-1/3 ml-auto"></div></td>
+            <td class="py-3 px-4"><div class="h-4 bg-white/5 rounded w-2/3"></div></td>
+            <td class="py-3 px-4"><div class="h-4 bg-white/5 rounded w-1/2 ml-auto"></div></td>
+            <td class="py-3 px-4"><div class="h-4 bg-white/5 rounded w-1/2 ml-auto"></div></td>
+            <td class="py-3 px-4"><div class="h-4 bg-white/5 rounded w-1/3 ml-auto"></div></td>
           </tr>
           
           <tr v-else-if="formattedRates.length === 0">
@@ -169,19 +182,19 @@ const { exportCsv } = useExportCsv(csvData, 'kurs_idr_analytics')
             v-else 
             v-for="rate in formattedRates" 
             :key="rate.code" 
-            class="hover:bg-white/[0.02] text-text-secondary transition-colors"
+            class="hover:bg-white/2 text-text-secondary transition-colors"
           >
             <td class="py-3 px-4 font-medium">
               <div class="flex items-center gap-2">
-                <span class="text-sm" aria-hidden="true">{{ rate.flag }}</span>
-                <span class="font-bold text-text-primary">{{ rate.code }}</span>
+                <img :src="'https://flagcdn.com/w40/' + getCountryCode(rate.code) + '.png'" class="w-5 h-3.5 object-cover rounded-xs border border-white/10 shrink-0" aria-hidden="true" />
+                <span class="font-bold text-text-primary ml-1">{{ rate.code }}</span>
                 <span class="hidden sm:inline text-xs text-text-tertiary">— {{ rate.name }}</span>
               </div>
             </td>
-            <td class="py-3 px-4 text-right font-mono text-xs" :class="rate.rawRate === '-' ? 'text-text-tertiary' : 'text-text-secondary'">
+            <td class="py-3 px-4 text-right font-mono text-xs text-text-tertiary">
               {{ rate.rawRate }}
             </td>
-            <td class="py-3 px-4 text-right font-semibold font-mono text-text-primary">
+            <td class="py-3 px-4 text-right font-semibold font-mono text-base text-white">
               <span v-if="rate.rateInIdr === '-'" class="text-text-tertiary">-</span>
               <span v-else>{{ rate.rateInIdr }}</span>
             </td>
@@ -189,7 +202,7 @@ const { exportCsv } = useExportCsv(csvData, 'kurs_idr_analytics')
               <span 
                 v-if="rate.rawRate !== '-'"
                 :class="[
-                  'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold font-mono',
+                  'inline-flex items-center justify-center min-w-[64px] px-2 py-0.5 rounded text-[10px] font-bold font-mono text-center',
                   rate.changePercent > 0 
                     ? 'bg-green-500/15 text-green-400' 
                     : rate.changePercent < 0

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from '#app'
 import { useDark, useClipboard } from '@vueuse/core'
 import { useRatesStore } from '~/stores/rates'
@@ -8,6 +8,47 @@ import { useCommoditiesStore } from '~/stores/commodities'
 import { useMarketStore } from '~/stores/market'
 import { useExportCsv } from '~/composables/useExportCsv'
 import BaseChart from '../charts/BaseChart.vue'
+
+// Custom Dropdowns active state
+const activeDropdown = ref<string | null>(null)
+
+const toggleDropdown = (name: string) => {
+  if (activeDropdown.value === name) {
+    activeDropdown.value = null
+  } else {
+    activeDropdown.value = name
+  }
+}
+
+const closeAllDropdowns = () => {
+  activeDropdown.value = null
+}
+
+const selectMetric = (val: string) => {
+  selectedMetric.value = val
+  onMetricChange()
+  activeDropdown.value = null
+}
+
+const selectItem = (val: string) => {
+  selectedItem.value = val
+  activeDropdown.value = null
+}
+
+const selectWeatherMetric = (val: string) => {
+  selectedWeatherMetric.value = val
+  activeDropdown.value = null
+}
+
+const selectChartType = (val: string) => {
+  selectedChartType.value = val
+  activeDropdown.value = null
+}
+
+const selectRange = (val: number) => {
+  selectedRange.value = val
+  activeDropdown.value = null
+}
 
 // Initialize stores
 const ratesStore = useRatesStore()
@@ -43,35 +84,35 @@ const METRIC_CATEGORIES = [
 ]
 
 const CURRENCIES = [
-  { value: 'USD', name: 'US Dollar', flag: '🇺🇸' },
-  { value: 'EUR', name: 'Euro', flag: '🇪🇺' },
-  { value: 'SGD', name: 'Singapore Dollar', flag: '🇸🇬' },
-  { value: 'JPY', name: 'Japanese Yen', flag: '🇯🇵' },
-  { value: 'MYR', name: 'Malaysian Ringgit', flag: '🇲🇾' },
-  { value: 'SAR', name: 'Saudi Riyal', flag: '🇸🇦' },
-  { value: 'AUD', name: 'Australian Dollar', flag: '🇦🇺' }
+  { value: 'USD', name: 'US Dollar', flagCode: 'us' },
+  { value: 'EUR', name: 'Euro', flagCode: 'eu' },
+  { value: 'SGD', name: 'Singapore Dollar', flagCode: 'sg' },
+  { value: 'JPY', name: 'Japanese Yen', flagCode: 'jp' },
+  { value: 'MYR', name: 'Malaysian Ringgit', flagCode: 'my' },
+  { value: 'SAR', name: 'Saudi Riyal', flagCode: 'sa' },
+  { value: 'AUD', name: 'Australian Dollar', flagCode: 'au' }
 ]
 
 const COMMODITIES = [
-  { value: 'GC=F', name: 'Emas (Gold)', flag: '🪙' },
-  { value: 'CL=F', name: 'Minyak Mentah (Crude Oil)', flag: '🛢️' },
-  { value: 'PALM.KL', name: 'CPO (Palm Oil)', flag: '🌴' }
+  { value: 'GC=F', name: 'Emas (Gold)', icon: '🪙' },
+  { value: 'CL=F', name: 'Minyak Mentah (Crude Oil)', icon: '🛢️' },
+  { value: 'PALM.KL', name: 'CPO (Palm Oil)', icon: '🌴' }
 ]
 
 const MARKET_STOCKS = [
-  { value: '^JKSE', name: 'IHSG (Indeks Gabungan)', flag: '🇮🇩' },
-  { value: 'BBCA.JK', name: 'Bank Central Asia', flag: '🏦' },
-  { value: 'BBRI.JK', name: 'Bank Rakyat Indonesia', flag: '🏦' },
-  { value: 'TLKM.JK', name: 'Telkom Indonesia', flag: '📞' }
+  { value: '^JKSE', name: 'IHSG (Indeks Gabungan)', isIndo: true },
+  { value: 'BBCA.JK', name: 'Bank Central Asia', isIndo: true },
+  { value: 'BBRI.JK', name: 'Bank Rakyat Indonesia', isIndo: true },
+  { value: 'TLKM.JK', name: 'Telkom Indonesia', isIndo: true }
 ]
 
 const CITIES = [
-  { value: 'Jakarta', name: 'Jakarta', flag: '🏙️' },
-  { value: 'Surabaya', name: 'Surabaya', flag: '⚓' },
-  { value: 'Bandung', name: 'Bandung', flag: '⛰️' },
-  { value: 'Medan', name: 'Medan', flag: '🏢' },
-  { value: 'Semarang', name: 'Semarang', flag: '🌅' },
-  { value: 'Makassar', name: 'Makassar', flag: '🏖️' }
+  { value: 'Jakarta', name: 'Jakarta', icon: '🏙️' },
+  { value: 'Surabaya', name: 'Surabaya', icon: '⚓' },
+  { value: 'Bandung', name: 'Bandung', icon: '⛰️' },
+  { value: 'Medan', name: 'Medan', icon: '🏢' },
+  { value: 'Semarang', name: 'Semarang', icon: '🌅' },
+  { value: 'Makassar', name: 'Makassar', icon: '🏖️' }
 ]
 
 const WEATHER_METRICS = [
@@ -80,19 +121,45 @@ const WEATHER_METRICS = [
   { value: 'windSpeed', label: 'Kecepatan Angin', unit: 'km/h' }
 ]
 
-// Computed dropdown options for the secondary item selector
-const itemOptions = computed(() => {
+interface ItemDetail {
+  value: string
+  name: string
+  flagCode?: string
+  icon?: string
+  isIndo?: boolean
+}
+
+// Resolved details of the currently selected item
+const selectedItemDetails = computed((): ItemDetail => {
+  const itemVal = selectedItem.value
   switch (selectedMetric.value) {
     case 'rates':
-      return CURRENCIES.map(c => ({ value: c.value, label: `${c.flag} ${c.value} - ${c.name}` }))
+      return CURRENCIES.find(c => c.value === itemVal) || { value: itemVal, name: itemVal, flagCode: 'un' }
     case 'commodities':
-      return COMMODITIES.map(c => ({ value: c.value, label: `${c.flag} ${c.name}` }))
+      return COMMODITIES.find(c => c.value === itemVal) || { value: itemVal, name: itemVal, icon: '📈' }
     case 'market':
-      return MARKET_STOCKS.map(m => ({ value: m.value, label: `${m.flag} ${m.name}` }))
+      return MARKET_STOCKS.find(c => c.value === itemVal) || { value: itemVal, name: itemVal, isIndo: true }
     case 'weather':
-      return CITIES.map(c => ({ value: c.value, label: `${c.flag} ${c.name}` }))
+      return CITIES.find(c => c.value === itemVal) || { value: itemVal, name: itemVal, icon: '🌤️' }
     default:
-      return []
+      return { value: itemVal, name: itemVal }
+  }
+})
+
+// Resolved details of the applied item
+const appliedItemDetails = computed((): ItemDetail => {
+  const itemVal = appliedConfig.value.item
+  switch (appliedConfig.value.metric) {
+    case 'rates':
+      return CURRENCIES.find(c => c.value === itemVal) || { value: itemVal, name: itemVal, flagCode: 'un' }
+    case 'commodities':
+      return COMMODITIES.find(c => c.value === itemVal) || { value: itemVal, name: itemVal, icon: '📈' }
+    case 'market':
+      return MARKET_STOCKS.find(c => c.value === itemVal) || { value: itemVal, name: itemVal, isIndo: true }
+    case 'weather':
+      return CITIES.find(c => c.value === itemVal) || { value: itemVal, name: itemVal, icon: '🌤️' }
+    default:
+      return { value: itemVal, name: itemVal }
   }
 })
 
@@ -328,17 +395,17 @@ const activeTitle = computed(() => {
   
   if (config.metric === 'rates') {
     const c = CURRENCIES.find(curr => curr.value === config.item)
-    itemName = c ? `${c.flag} ${c.value} ke IDR` : config.item
+    itemName = c ? `${c.value} ke IDR (${c.name})` : config.item
   } else if (config.metric === 'commodities') {
     const c = COMMODITIES.find(comm => comm.value === config.item)
-    itemName = c ? `${c.flag} ${c.name}` : config.item
+    itemName = c ? `${c.name}` : config.item
   } else if (config.metric === 'market') {
     const m = MARKET_STOCKS.find(st => st.value === config.item)
-    itemName = m ? `${m.flag} ${m.name}` : config.item
+    itemName = m ? `${m.name}` : config.item
   } else if (config.metric === 'weather') {
     const c = CITIES.find(ct => ct.value === config.item)
     const m = WEATHER_METRICS.find(met => met.value === config.weatherMetric)
-    itemName = `${c ? c.flag : ''} ${config.item} (${m ? m.label : ''})`
+    itemName = `${config.item} (${m ? m.label : ''})`
   }
   
   return `${itemName} — Tren ${config.range} Hari`
@@ -417,14 +484,23 @@ const chartOption = computed(() => {
     },
     yAxis: {
       type: 'value',
+      scale: true,
       min: (value: any) => {
-        const range = value.max - value.min;
-        const minVal = value.min - range * 0.02;
-        return value.min >= 0 && minVal < 0 ? 0 : minVal;
+        if (!value || typeof value.min !== 'number' || isNaN(value.min) || !isFinite(value.min)) {
+          return 'dataMin'
+        }
+        const range = value.max - value.min
+        if (range === 0) return value.min * 0.95
+        const minVal = value.min - range * 0.05
+        return value.min >= 0 && minVal < 0 ? 0 : minVal
       },
       max: (value: any) => {
-        const range = value.max - value.min;
-        return value.max + range * 0.02;
+        if (!value || typeof value.max !== 'number' || isNaN(value.max) || !isFinite(value.max)) {
+          return 'dataMax'
+        }
+        const range = value.max - value.min
+        if (range === 0) return value.max * 1.05
+        return value.max + range * 0.05
       },
       axisLine: {
         show: false
@@ -437,12 +513,22 @@ const chartOption = computed(() => {
         fontSize: 10,
         color: '#52525B',
         formatter: (value: number) => {
+          const unitStr = chart.unit ? ' ' + chart.unit : ''
           if (chart.unit === 'Rp') {
-            return new Intl.NumberFormat('id-ID', { notation: 'compact', style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value)
+            const formatted = Math.abs(value) >= 1000000
+              ? new Intl.NumberFormat('id-ID', { notation: 'compact', style: 'currency', currency: 'IDR', maximumFractionDigits: 1 }).format(value)
+              : new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value)
+            return formatted
           } else if (chart.unit === 'USD') {
-            return new Intl.NumberFormat('en-US', { notation: 'compact', style: 'currency', currency: 'USD', maximumFractionDigits: 1 }).format(value)
+            const formatted = Math.abs(value) >= 1000000
+              ? new Intl.NumberFormat('en-US', { notation: 'compact', style: 'currency', currency: 'USD', maximumFractionDigits: 1 }).format(value)
+              : new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)
+            return formatted
           }
-          return new Intl.NumberFormat(undefined, { notation: 'compact' }).format(value) + (chart.unit ? ' ' + chart.unit : '')
+          const formatted = Math.abs(value) >= 1000000
+            ? new Intl.NumberFormat('id-ID', { notation: 'compact', maximumFractionDigits: 1 }).format(value)
+            : new Intl.NumberFormat('id-ID', { maximumFractionDigits: 2 }).format(value)
+          return formatted + unitStr
         }
       },
       splitLine: {
@@ -599,8 +685,19 @@ onMounted(async () => {
     console.error('Error fetching data during builder mount:', err)
   }
   
+  // Add global click listener to close dropdowns when clicking outside
+  if (typeof window !== 'undefined') {
+    document.addEventListener('click', closeAllDropdowns)
+  }
+
   // Finalize options mapping
   applySettings()
+})
+
+onUnmounted(() => {
+  if (typeof window !== 'undefined') {
+    document.removeEventListener('click', closeAllDropdowns)
+  }
 })
 </script>
 
@@ -652,80 +749,274 @@ onMounted(async () => {
     </div>
 
     <!-- Controls Selector Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 mb-6 rounded-xl bg-[#161616] border border-white/5 transition-all duration-300">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 mb-6 rounded-xl bg-bg-subcard border border-white/5 transition-all duration-300">
       <!-- 1. Metric Category -->
-      <div class="col-span-1 md:col-span-3">
+      <div class="col-span-1 md:col-span-3 relative">
         <label class="block text-[10px] font-bold text-text-tertiary uppercase tracking-wider mb-1.5">
           Kategori Metrik
         </label>
-        <select
-          v-model="selectedMetric"
-          @change="onMetricChange()"
-          class="w-full text-xs rounded-lg border border-white/5 bg-[#111111] px-3 py-2 text-text-primary focus:border-blue-500/40 focus:outline-none transition-colors cursor-pointer"
+        <button
+          type="button"
+          @click.stop="toggleDropdown('metric')"
+          class="w-full flex items-center justify-between text-xs rounded-lg border border-white/5 bg-bg-card px-3 py-2 text-text-primary focus:border-blue-500/40 focus:outline-none transition-all cursor-pointer hover:border-white/10 hover:bg-bg-subcard/50 active:scale-[0.99]"
         >
-          <option v-for="m in METRIC_CATEGORIES" :key="m.value" :value="m.value">
-            {{ m.label }}
-          </option>
-        </select>
+          <span>{{ METRIC_CATEGORIES.find(m => m.value === selectedMetric)?.label }}</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-text-secondary transition-transform duration-200" :class="{ 'rotate-180': activeDropdown === 'metric' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div
+          v-if="activeDropdown === 'metric'"
+          class="absolute left-0 right-0 mt-1.5 z-50 max-h-60 overflow-y-auto rounded-lg border border-white/10 bg-bg-card/95 backdrop-blur-xl shadow-xl py-1 scrollbar-thin"
+        >
+          <button
+            v-for="m in METRIC_CATEGORIES"
+            :key="m.value"
+            type="button"
+            @click="selectMetric(m.value)"
+            class="w-full text-left px-3 py-2 text-xs text-text-secondary hover:text-white hover:bg-white/4 transition-colors flex items-center justify-between cursor-pointer"
+          >
+            <span>{{ m.label }}</span>
+            <span v-if="selectedMetric === m.value" class="text-blue-400 font-bold">✓</span>
+          </button>
+        </div>
       </div>
 
       <!-- 2. Sub Option (Item) -->
-      <div class="col-span-1" :class="selectedMetric === 'weather' ? 'md:col-span-3' : 'md:col-span-5'">
+      <div class="col-span-1 relative" :class="selectedMetric === 'weather' ? 'md:col-span-3' : 'md:col-span-5'">
         <label class="block text-[10px] font-bold text-text-tertiary uppercase tracking-wider mb-1.5">
           Pilih Item
         </label>
-        <select
-          v-model="selectedItem"
-          class="w-full text-xs rounded-lg border border-white/5 bg-[#111111] px-3 py-2 text-text-primary focus:border-blue-500/40 focus:outline-none transition-colors cursor-pointer"
+        <button
+          type="button"
+          @click.stop="toggleDropdown('item')"
+          class="w-full flex items-center justify-between text-xs rounded-lg border border-white/5 bg-bg-card px-3 py-2 text-text-primary focus:border-blue-500/40 focus:outline-none transition-all cursor-pointer hover:border-white/10 hover:bg-bg-subcard/50 active:scale-[0.99]"
         >
-          <option v-for="item in itemOptions" :key="item.value" :value="item.value">
-            {{ item.label }}
-          </option>
-        </select>
+          <span class="flex items-center gap-2">
+            <!-- Selected Item flag/icon/details -->
+            <template v-if="selectedMetric === 'rates'">
+              <img 
+                :src="'https://flagcdn.com/w40/' + (selectedItemDetails.flagCode || 'un') + '.png'" 
+                class="w-5 h-3.5 object-cover rounded-xs border border-white/10" 
+              />
+              <span class="font-bold text-text-primary">{{ selectedItemDetails.value }}</span>
+              <span class="text-text-tertiary hidden md:inline">— {{ selectedItemDetails.name }}</span>
+            </template>
+            <template v-else-if="selectedMetric === 'market'">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2" class="w-5 h-3.5 rounded-xs border border-white/10 shrink-0" aria-hidden="true">
+                <rect width="3" height="1" fill="#FF0000"/>
+                <rect y="1" width="3" height="1" fill="#FFFFFF"/>
+              </svg>
+              <span class="font-bold text-text-primary">{{ selectedItemDetails.name }}</span>
+              <span class="text-text-tertiary font-mono text-[9px] uppercase">({{ selectedItemDetails.value }})</span>
+            </template>
+            <template v-else-if="selectedMetric === 'commodities'">
+              <span class="text-sm">{{ selectedItemDetails.icon }}</span>
+              <span class="font-bold text-text-primary">{{ selectedItemDetails.name }}</span>
+            </template>
+            <template v-else-if="selectedMetric === 'weather'">
+              <span class="text-sm">{{ selectedItemDetails.icon }}</span>
+              <span class="font-bold text-text-primary">{{ selectedItemDetails.name }}</span>
+            </template>
+          </span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-text-secondary transition-transform duration-200" :class="{ 'rotate-180': activeDropdown === 'item' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div
+          v-if="activeDropdown === 'item'"
+          class="absolute left-0 right-0 mt-1.5 z-50 max-h-60 overflow-y-auto rounded-lg border border-white/10 bg-bg-card/95 backdrop-blur-xl shadow-xl py-1 scrollbar-thin"
+        >
+          <!-- Rates options -->
+          <template v-if="selectedMetric === 'rates'">
+            <button
+              v-for="c in CURRENCIES"
+              :key="c.value"
+              type="button"
+              @click="selectItem(c.value)"
+              class="w-full text-left px-3 py-2 text-xs text-text-secondary hover:text-white hover:bg-white/4 transition-colors flex items-center justify-between cursor-pointer"
+            >
+              <span class="flex items-center gap-2">
+                <img :src="'https://flagcdn.com/w40/' + c.flagCode + '.png'" class="w-5 h-3.5 object-cover rounded-xs border border-white/10" />
+                <span class="font-bold text-text-primary">{{ c.value }}</span>
+                <span class="text-text-tertiary">— {{ c.name }}</span>
+              </span>
+              <span v-if="selectedItem === c.value" class="text-blue-450 font-bold">✓</span>
+            </button>
+          </template>
+
+          <!-- Stocks options -->
+          <template v-else-if="selectedMetric === 'market'">
+            <button
+              v-for="m in MARKET_STOCKS"
+              :key="m.value"
+              type="button"
+              @click="selectItem(m.value)"
+              class="w-full text-left px-3 py-2.5 text-xs text-text-secondary hover:text-white hover:bg-white/4 transition-colors flex items-center justify-between cursor-pointer"
+            >
+              <span class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2" class="w-5 h-3.5 rounded-xs border border-white/10 shrink-0" aria-hidden="true">
+                  <rect width="3" height="1" fill="#FF0000"/>
+                  <rect y="1" width="3" height="1" fill="#FFFFFF"/>
+                </svg>
+                <span class="font-bold text-text-primary">{{ m.name }}</span>
+                <span class="text-text-tertiary font-mono text-[9px] uppercase">({{ m.value }})</span>
+              </span>
+              <span v-if="selectedItem === m.value" class="text-blue-450 font-bold">✓</span>
+            </button>
+          </template>
+
+          <!-- Commodities options -->
+          <template v-else-if="selectedMetric === 'commodities'">
+            <button
+              v-for="c in COMMODITIES"
+              :key="c.value"
+              type="button"
+              @click="selectItem(c.value)"
+              class="w-full text-left px-3 py-2 text-xs text-text-secondary hover:text-white hover:bg-white/4 transition-colors flex items-center justify-between cursor-pointer"
+            >
+              <span class="flex items-center gap-2">
+                <span class="text-sm">{{ c.icon }}</span>
+                <span class="font-bold text-text-primary">{{ c.name }}</span>
+                <span class="text-text-tertiary font-mono text-[9px] uppercase">({{ c.value }})</span>
+              </span>
+              <span v-if="selectedItem === c.value" class="text-blue-450 font-bold">✓</span>
+            </button>
+          </template>
+
+          <!-- Cities options -->
+          <template v-else-if="selectedMetric === 'weather'">
+            <button
+              v-for="c in CITIES"
+              :key="c.value"
+              type="button"
+              @click="selectItem(c.value)"
+              class="w-full text-left px-3 py-2 text-xs text-text-secondary hover:text-white hover:bg-white/4 transition-colors flex items-center justify-between cursor-pointer"
+            >
+              <span class="flex items-center gap-2">
+                <span class="text-sm">{{ c.icon }}</span>
+                <span class="font-bold text-text-primary">{{ c.name }}</span>
+              </span>
+              <span v-if="selectedItem === c.value" class="text-blue-450 font-bold">✓</span>
+            </button>
+          </template>
+        </div>
       </div>
 
       <!-- 3. Weather Metric Parameter (Cuaca only) -->
-      <div v-if="selectedMetric === 'weather'" class="col-span-1 md:col-span-2">
+      <div v-if="selectedMetric === 'weather'" class="col-span-1 md:col-span-2 relative">
         <label class="block text-[10px] font-bold text-text-tertiary uppercase tracking-wider mb-1.5">
           Parameter Cuaca
         </label>
-        <select
-          v-model="selectedWeatherMetric"
-          class="w-full text-xs rounded-lg border border-white/5 bg-[#111111] px-3 py-2 text-text-primary focus:border-blue-500/40 focus:outline-none transition-colors cursor-pointer"
+        <button
+          type="button"
+          @click.stop="toggleDropdown('weatherMetric')"
+          class="w-full flex items-center justify-between text-xs rounded-lg border border-white/5 bg-bg-card px-3 py-2 text-text-primary focus:border-blue-500/40 focus:outline-none transition-all cursor-pointer hover:border-white/10 hover:bg-bg-subcard/50 active:scale-[0.99]"
         >
-          <option v-for="w in WEATHER_METRICS" :key="w.value" :value="w.value">
-            {{ w.label }} ({{ w.unit }})
-          </option>
-        </select>
+          <span>{{ WEATHER_METRICS.find(w => w.value === selectedWeatherMetric)?.label }}</span>
+          <svg xmlns="http://www.w3.org/2500/svg" class="h-3.5 w-3.5 text-text-secondary transition-transform duration-200" :class="{ 'rotate-180': activeDropdown === 'weatherMetric' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div
+          v-if="activeDropdown === 'weatherMetric'"
+          class="absolute left-0 right-0 mt-1.5 z-50 max-h-60 overflow-y-auto rounded-lg border border-white/10 bg-bg-card/95 backdrop-blur-xl shadow-xl py-1 scrollbar-thin"
+        >
+          <button
+            v-for="w in WEATHER_METRICS"
+            :key="w.value"
+            type="button"
+            @click="selectWeatherMetric(w.value)"
+            class="w-full text-left px-3 py-2 text-xs text-text-secondary hover:text-white hover:bg-white/4 transition-colors flex items-center justify-between cursor-pointer"
+          >
+            <span>{{ w.label }} ({{ w.unit }})</span>
+            <span v-if="selectedWeatherMetric === w.value" class="text-blue-450 font-bold">✓</span>
+          </button>
+        </div>
       </div>
 
       <!-- 4. Chart Type Selection -->
-      <div class="col-span-1 md:col-span-2">
+      <div class="col-span-1 md:col-span-2 relative">
         <label class="block text-[10px] font-bold text-text-tertiary uppercase tracking-wider mb-1.5">
           Tipe Grafik
         </label>
-        <select
-          v-model="selectedChartType"
-          class="w-full text-xs rounded-lg border border-white/5 bg-[#111111] px-3 py-2 text-text-primary focus:border-blue-500/40 focus:outline-none transition-colors cursor-pointer"
+        <button
+          type="button"
+          @click.stop="toggleDropdown('chartType')"
+          class="w-full flex items-center justify-between text-xs rounded-lg border border-white/5 bg-bg-card px-3 py-2 text-text-primary focus:border-blue-500/40 focus:outline-none transition-all cursor-pointer hover:border-white/10 hover:bg-bg-subcard/50 active:scale-[0.99]"
         >
-          <option value="line">Line Chart</option>
-          <option value="bar">Bar Chart</option>
-          <option value="area">Area Chart</option>
-        </select>
+          <span>{{ selectedChartType === 'line' ? 'Line Chart' : selectedChartType === 'bar' ? 'Bar Chart' : 'Area Chart' }}</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-text-secondary transition-transform duration-200" :class="{ 'rotate-180': activeDropdown === 'chartType' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div
+          v-if="activeDropdown === 'chartType'"
+          class="absolute left-0 right-0 mt-1.5 z-50 max-h-60 overflow-y-auto rounded-lg border border-white/10 bg-bg-card/95 backdrop-blur-xl shadow-xl py-1 scrollbar-thin"
+        >
+          <button
+            type="button"
+            @click="selectChartType('line')"
+            class="w-full text-left px-3 py-2 text-xs text-text-secondary hover:text-white hover:bg-white/4 transition-colors flex items-center justify-between cursor-pointer"
+          >
+            <span>Line Chart</span>
+            <span v-if="selectedChartType === 'line'" class="text-blue-450 font-bold">✓</span>
+          </button>
+          <button
+            type="button"
+            @click="selectChartType('bar')"
+            class="w-full text-left px-3 py-2 text-xs text-text-secondary hover:text-white hover:bg-white/4 transition-colors flex items-center justify-between cursor-pointer"
+          >
+            <span>Bar Chart</span>
+            <span v-if="selectedChartType === 'bar'" class="text-blue-450 font-bold">✓</span>
+          </button>
+          <button
+            type="button"
+            @click="selectChartType('area')"
+            class="w-full text-left px-3 py-2 text-xs text-text-secondary hover:text-white hover:bg-white/4 transition-colors flex items-center justify-between cursor-pointer"
+          >
+            <span>Area Chart</span>
+            <span v-if="selectedChartType === 'area'" class="text-blue-450 font-bold">✓</span>
+          </button>
+        </div>
       </div>
 
       <!-- 5. Time Range Selection -->
-      <div class="col-span-1 md:col-span-1.5" :class="selectedMetric === 'weather' ? 'md:col-span-1.5' : 'md:col-span-2'">
+      <div class="col-span-1 relative" :class="selectedMetric === 'weather' ? 'md:col-span-1.5' : 'md:col-span-2'">
         <label class="block text-[10px] font-bold text-text-tertiary uppercase tracking-wider mb-1.5">
           Waktu
         </label>
-        <select
-          v-model="selectedRange"
-          class="w-full text-xs rounded-lg border border-white/5 bg-[#111111] px-3 py-2 text-text-primary focus:border-blue-500/40 focus:outline-none transition-colors cursor-pointer"
+        <button
+          type="button"
+          @click.stop="toggleDropdown('range')"
+          class="w-full flex items-center justify-between text-xs rounded-lg border border-white/5 bg-bg-card px-3 py-2 text-text-primary focus:border-blue-500/40 focus:outline-none transition-all cursor-pointer hover:border-white/10 hover:bg-bg-subcard/50 active:scale-[0.99]"
         >
-          <option :value="3">3 Hari</option>
-          <option :value="7">7 Hari</option>
-        </select>
+          <span>{{ selectedRange }} Hari</span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-text-secondary transition-transform duration-200" :class="{ 'rotate-180': activeDropdown === 'range' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        <div
+          v-if="activeDropdown === 'range'"
+          class="absolute left-0 right-0 mt-1.5 z-50 max-h-60 overflow-y-auto rounded-lg border border-white/10 bg-bg-card/95 backdrop-blur-xl shadow-xl py-1 scrollbar-thin"
+        >
+          <button
+            type="button"
+            @click="selectRange(3)"
+            class="w-full text-left px-3 py-2 text-xs text-text-secondary hover:text-white hover:bg-white/4 transition-colors flex items-center justify-between cursor-pointer"
+          >
+            <span>3 Hari</span>
+            <span v-if="Number(selectedRange) === 3" class="text-blue-450 font-bold">✓</span>
+          </button>
+          <button
+            type="button"
+            @click="selectRange(7)"
+            class="w-full text-left px-3 py-2 text-xs text-text-secondary hover:text-white hover:bg-white/4 transition-colors flex items-center justify-between cursor-pointer"
+          >
+            <span>7 Hari</span>
+            <span v-if="Number(selectedRange) === 7" class="text-blue-450 font-bold">✓</span>
+          </button>
+        </div>
       </div>
 
       <!-- 6. Apply Button -->
@@ -742,9 +1033,31 @@ onMounted(async () => {
     <!-- Chart Panel -->
     <div class="mt-6">
       <div class="flex items-center justify-between mb-4 border-b border-white/5 pb-3">
-        <h4 class="text-xs font-extrabold text-text-secondary uppercase tracking-wide">
-          {{ activeTitle }}
-        </h4>
+        <div class="flex items-center gap-2">
+          <!-- Currency Flag -->
+          <img 
+            v-if="appliedConfig.metric === 'rates'"
+            :src="'https://flagcdn.com/w40/' + (appliedItemDetails.flagCode || 'un') + '.png'" 
+            class="w-5 h-3.5 object-cover rounded-xs border border-white/10 shrink-0" 
+          />
+          <!-- Stock Indonesian Flag SVG -->
+          <svg v-else-if="appliedConfig.metric === 'market'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3 2" class="w-5 h-3.5 rounded-xs border border-white/10 shrink-0" aria-hidden="true">
+            <rect width="3" height="1" fill="#FF0000"/>
+            <rect y="1" width="3" height="1" fill="#FFFFFF"/>
+          </svg>
+          <!-- Commodity Icon -->
+          <span v-else-if="appliedConfig.metric === 'commodities'" class="text-sm">
+            {{ appliedItemDetails.icon }}
+          </span>
+          <!-- Weather City Icon -->
+          <span v-else-if="appliedConfig.metric === 'weather'" class="text-sm">
+            {{ appliedItemDetails.icon }}
+          </span>
+
+          <h4 class="text-xs font-extrabold text-text-secondary uppercase tracking-wide">
+            {{ activeTitle }}
+          </h4>
+        </div>
         <div class="text-[9px] text-text-tertiary font-semibold uppercase tracking-wider font-mono">
           Y-Axis Unit: <span class="text-text-primary font-bold">{{ chartData.unit || 'n/a' }}</span>
         </div>
@@ -760,16 +1073,16 @@ onMounted(async () => {
       </div>
 
       <!-- Compact numeric data preview table -->
-      <div v-if="!isLoading && chartData.dataPoints.length > 0" class="mt-6 overflow-x-auto border border-white/5 rounded-xl bg-[#161616]/50 scrollbar-thin">
+      <div v-if="!isLoading && chartData.dataPoints.length > 0" class="mt-6 overflow-x-auto border border-white/5 rounded-xl bg-bg-subcard/50 scrollbar-thin">
         <table class="w-full text-left text-xs border-collapse">
           <thead>
-            <tr class="bg-[#161616] border-b border-white/5 text-text-tertiary font-bold tracking-wider uppercase">
+            <tr class="bg-bg-subcard border-b border-white/5 text-text-tertiary font-bold tracking-wider uppercase">
               <th class="py-2 px-4">Tanggal</th>
               <th class="py-2 px-4 text-right">Nilai ({{ chartData.unit }})</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-white/5">
-            <tr v-for="(val, idx) in chartData.dataPoints" :key="'preview-'+idx" class="hover:bg-white/[0.02] text-text-secondary">
+            <tr v-for="(val, idx) in chartData.dataPoints" :key="'preview-'+idx" class="hover:bg-white/2 text-text-secondary">
               <td class="py-2 px-4 font-medium">{{ chartData.xAxis[idx] }}</td>
               <td class="py-2 px-4 text-right font-mono font-semibold text-text-primary">{{ val }}</td>
             </tr>

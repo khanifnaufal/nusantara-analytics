@@ -79,20 +79,39 @@ const csvData = computed(() => {
 const { exportCsv } = useExportCsv(csvData, 'pasar_saham_analytics')
 
 // IHSG dynamic Y-axis min/max scaling (tight range to highlight small changes)
-const ihsgYMinFn = (value: any) => value.min * 0.998;
-const ihsgYMaxFn = (value: any) => value.max * 1.002;
+const ihsgYMinFn = (value: any) => {
+  if (!value || typeof value.min !== 'number' || isNaN(value.min) || !isFinite(value.min)) {
+    return 'dataMin'
+  }
+  return value.min * 0.998
+}
 
-// Other stocks dynamic Y-axis min/max scaling with 2% padding (auto scaled, not starting from zero)
+const ihsgYMaxFn = (value: any) => {
+  if (!value || typeof value.max !== 'number' || isNaN(value.max) || !isFinite(value.max)) {
+    return 'dataMax'
+  }
+  return value.max * 1.002
+}
+
+// Other stocks dynamic Y-axis min/max scaling with 5% padding (auto scaled, not starting from zero)
 const stockYMinFn = (value: any) => {
-  const range = value.max - value.min;
-  const minVal = value.min - range * 0.02;
-  return value.min >= 0 && minVal < 0 ? 0 : minVal;
-};
+  if (!value || typeof value.min !== 'number' || isNaN(value.min) || !isFinite(value.min)) {
+    return 'dataMin'
+  }
+  const range = value.max - value.min
+  if (range === 0) return value.min * 0.95
+  const minVal = value.min - range * 0.05
+  return value.min >= 0 && minVal < 0 ? 0 : minVal
+}
 
 const stockYMaxFn = (value: any) => {
-  const range = value.max - value.min;
-  return value.max + range * 0.02;
-};
+  if (!value || typeof value.max !== 'number' || isNaN(value.max) || !isFinite(value.max)) {
+    return 'dataMax'
+  }
+  const range = value.max - value.min
+  if (range === 0) return value.max * 1.05
+  return value.max + range * 0.05
+}
 </script>
 
 <template>
@@ -166,7 +185,7 @@ const stockYMaxFn = (value: any) => {
       <!-- 1. Prominent IHSG Card (Wide Layout) -->
       <div 
         v-if="ihsgStock" 
-        class="rounded-xl border border-white/5 bg-[#161616] p-4 md:p-5 flex flex-col md:flex-row gap-6 justify-between items-center transition-all duration-300 hover:border-blue-500/20"
+        class="rounded-xl border border-white/5 bg-bg-subcard p-4 md:p-5 flex flex-col md:flex-row gap-6 justify-between items-center transition-all duration-300 hover:border-blue-500/20"
       >
         <!-- IHSG Info (Left side on desktop) -->
         <div class="flex flex-col justify-between w-full md:w-[35%] self-stretch">
@@ -187,7 +206,7 @@ const stockYMaxFn = (value: any) => {
 
           <div class="my-3 md:my-1">
             <!-- Index Value -->
-            <div class="text-2xl font-extrabold text-text-primary tracking-tight font-mono">
+            <div class="text-4xl font-mono font-bold text-white tracking-tight">
               {{ formatMarketPrice(ihsgStock.price, ihsgStock.symbol) }}
             </div>
             
@@ -195,7 +214,7 @@ const stockYMaxFn = (value: any) => {
             <div class="mt-1.5">
               <span 
                 :class="[
-                  'inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold font-mono',
+                  'inline-flex items-center gap-1.5 px-3 py-1 rounded text-sm font-bold font-mono',
                   ihsgStock.changePercent > 0 
                     ? 'bg-green-500/15 text-green-400' 
                     : ihsgStock.changePercent < 0
@@ -234,62 +253,59 @@ const stockYMaxFn = (value: any) => {
         </div>
       </div>
 
-      <!-- 2. Other Stocks Grid (BCA, BRI, Telkom) -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- 2. Other Stocks List (BCA, BRI, Telkom) -->
+      <div class="flex flex-col gap-3 border-t border-white/5 pt-4 mt-2">
         <div
           v-for="stock in otherStocks"
           :key="stock.symbol"
-          class="rounded-xl border border-white/5 bg-[#161616] p-4 flex flex-col justify-between transition-all duration-300 hover:border-blue-500/20"
+          class="flex items-center justify-between p-3 rounded-xl border border-white/5 bg-bg-subcard hover:bg-white/2 transition-all duration-300 gap-4"
         >
-          <!-- Stock Info -->
-          <div class="mb-2">
-            <div class="flex items-center justify-between mb-1">
-              <div>
-                <h5 class="font-bold text-sm text-text-primary tracking-tight">
-                  {{ stock.name }}
-                </h5>
-                <p class="text-[9px] text-text-tertiary font-semibold uppercase font-mono tracking-wider">
-                  {{ stock.symbol }}
-                </p>
-              </div>
-
-              <!-- Change Badge -->
-              <span 
-                :class="[
-                  'inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold font-mono',
-                  stock.changePercent > 0 
-                    ? 'bg-green-500/15 text-green-400' 
-                    : stock.changePercent < 0
-                      ? 'bg-red-500/15 text-red-400'
-                      : 'bg-zinc-800 text-zinc-500'
-                ]"
-              >
-                {{ stock.changePercent > 0 ? '+' : '' }}{{ stock.changePercent.toFixed(2) }}%
-              </span>
-            </div>
-
-            <!-- Price -->
-            <div class="text-lg font-extrabold text-text-primary tracking-tight font-mono mt-1">
-              {{ formatMarketPrice(stock.price, stock.symbol) }}
-            </div>
+          <!-- Left: Stock Name & Symbol -->
+          <div class="shrink-0 w-24">
+            <h5 class="font-bold text-sm text-text-primary tracking-tight truncate">
+              {{ stock.name }}
+            </h5>
+            <p class="text-[9px] text-text-tertiary font-semibold uppercase font-mono tracking-wider">
+              {{ stock.symbol }}
+            </p>
           </div>
 
-          <!-- Trend Chart -->
-          <div class="w-full mt-2 border-t border-white/5 pt-3">
-            <p class="text-[9px] text-text-tertiary font-bold uppercase tracking-wider mb-2">
-              Tren 7 Hari Terakhir
-            </p>
-            <div class="h-[90px] w-full">
-              <AreaChart
-                v-bind="getChartProps(stock.history, stock.name)"
-                :loading="marketStore.loading"
-                unit="Rp"
-                accentColor="#3B82F6"
-                height="100%"
-                :yAxisMin="stockYMinFn"
-                :yAxisMax="stockYMaxFn"
-              />
+          <!-- Middle: Sparkline Chart -->
+          <div class="grow h-[48px] max-w-[180px] min-w-[80px]">
+            <AreaChart
+              v-bind="getChartProps(stock.history, stock.name)"
+              :loading="marketStore.loading"
+              unit="Rp"
+              accentColor="#3B82F6"
+              height="100%"
+              :lineWidth="1.5"
+              :smooth="true"
+              :areaOpacity="0.1"
+              :showOnlyFirstLastX="true"
+              :yAxisMin="stockYMinFn"
+              :yAxisMax="stockYMaxFn"
+              :yAxisSplitNumber="2"
+              :isSparkline="true"
+            />
+          </div>
+
+          <!-- Right: Price & Change Badge -->
+          <div class="text-right shrink-0 flex items-center gap-3">
+            <div class="font-mono text-sm font-semibold text-text-primary">
+              {{ formatMarketPrice(stock.price, stock.symbol) }}
             </div>
+            <span 
+              :class="[
+                'inline-flex items-center justify-center min-w-[56px] px-1.5 py-0.5 rounded text-[10px] font-bold font-mono',
+                stock.changePercent > 0 
+                  ? 'bg-green-500/15 text-green-400' 
+                  : stock.changePercent < 0
+                    ? 'bg-red-500/15 text-red-400'
+                    : 'bg-zinc-800 text-zinc-500'
+              ]"
+            >
+              {{ stock.changePercent > 0 ? '+' : '' }}{{ stock.changePercent.toFixed(2) }}%
+            </span>
           </div>
         </div>
       </div>
