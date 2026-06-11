@@ -142,6 +142,14 @@ const setPresetSize = (w: number, h: number) => {
   }
 }
 
+// Accent color setter
+const setAccentColor = (colorName: string) => {
+  if (widget.value) {
+    if (!widget.value.config) widget.value.config = {}
+    widget.value.config.accentColor = colorName
+  }
+}
+
 // Window click to close dropdowns
 const handleWindowClick = () => {
   closeMetricDropdown()
@@ -305,18 +313,18 @@ onUnmounted(() => {
                 v-for="color in PRESET_COLORS"
                 :key="color.name"
                 type="button"
-                @click="widget.config.accentColor = color.name"
+                @click="setAccentColor(color.name)"
                 class="w-6 h-6 rounded-full border border-black/20 relative group transition-all hover:scale-110 cursor-pointer shadow-md focus:outline-none"
                 :class="[
                   color.class,
-                  (widget.config.accentColor === color.name || (!widget.config.accentColor && color.name === 'blue'))
+                  (widget.config?.accentColor === color.name || (!widget.config?.accentColor && color.name === 'blue'))
                     ? 'ring-2 ring-white/60 scale-105'
                     : 'opacity-70 hover:opacity-100'
                 ]"
                 :title="color.name"
               >
                 <span
-                  v-if="widget.config.accentColor === color.name || (!widget.config.accentColor && color.name === 'blue')"
+                  v-if="widget.config?.accentColor === color.name || (!widget.config?.accentColor && color.name === 'blue')"
                   class="absolute inset-0 flex items-center justify-center text-white text-[9px] font-bold"
                 >
                   ✓
