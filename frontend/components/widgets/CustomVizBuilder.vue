@@ -89,7 +89,7 @@ const CURRENCIES = [
   { value: 'SGD', name: 'Singapore Dollar', flagCode: 'sg' },
   { value: 'JPY', name: 'Japanese Yen', flagCode: 'jp' },
   { value: 'MYR', name: 'Malaysian Ringgit', flagCode: 'my' },
-  { value: 'SAR', name: 'Saudi Riyal', flagCode: 'sa' },
+  { value: 'CNY', name: 'Chinese Yuan', flagCode: 'cn' },
   { value: 'AUD', name: 'Australian Dollar', flagCode: 'au' }
 ]
 

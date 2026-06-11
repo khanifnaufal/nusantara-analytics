@@ -12,7 +12,7 @@ import WeatherWidget from '~/components/widgets/WeatherWidget.vue'
 import CommoditiesWidget from '~/components/widgets/CommoditiesWidget.vue'
 import MarketWidget from '~/components/widgets/MarketWidget.vue'
 import QuakesWidget from '~/components/widgets/QuakesWidget.vue'
-import CustomVizBuilder from '~/components/widgets/CustomVizBuilder.vue'
+
 
 // Initialize Stores
 const ratesStore = useRatesStore()
@@ -228,12 +228,7 @@ const formattedLastUpdated = computed(() => {
           </div>
         </div>
         
-        <!-- 6. Custom Viz Builder Skeleton (12 col) -->
-        <div class="col-span-12 rounded-2xl border border-white/5 bg-bg-subcard p-5 flex flex-col gap-6 h-[400px]">
-          <div class="h-4 bg-white/5 rounded w-1/4"></div>
-          <div class="h-12 bg-white/5 rounded w-full"></div>
-          <div class="h-[200px] bg-white/5 rounded w-full"></div>
-        </div>
+
       </div>
 
       <!-- Main Widget Grid Layout (Data Loaded) -->
@@ -263,10 +258,7 @@ const formattedLastUpdated = computed(() => {
           <QuakesWidget disable-auto-poll />
         </div>
 
-        <!-- Custom Viz Builder (12 col always) -->
-        <div class="col-span-12">
-          <CustomVizBuilder />
-        </div>
+
       </div>
 
     </div>

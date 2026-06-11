@@ -29,7 +29,7 @@ const currencyDetails: Record<string, CurrencyMeta> = {
   SGD: { flag: '🇸🇬', name: 'Singapore Dollar' },
   JPY: { flag: '🇯🇵', name: 'Japanese Yen' },
   MYR: { flag: '🇲🇾', name: 'Malaysian Ringgit' },
-  SAR: { flag: '🇸🇦', name: 'Saudi Riyal' },
+  CNY: { flag: '🇨🇳', name: 'Chinese Yuan' },
   AUD: { flag: '🇦🇺', name: 'Australian Dollar' }
 }
 
@@ -50,8 +50,8 @@ const formattedRates = computed(() => {
   if (!ratesStore.data || !ratesStore.data.rates) return []
   
   const dateStr = ratesStore.data.date
-  // We only want: USD, EUR, SGD, JPY, MYR, SAR, AUD
-  const targetCurrencies = ['USD', 'EUR', 'SGD', 'JPY', 'MYR', 'SAR', 'AUD']
+  // We only want: USD, EUR, SGD, JPY, MYR, CNY, AUD
+  const targetCurrencies = ['USD', 'EUR', 'SGD', 'JPY', 'MYR', 'CNY', 'AUD']
   
   return targetCurrencies.map(code => {
     const rawVal = ratesStore.data?.rates[code]
@@ -111,7 +111,7 @@ const getCountryCode = (code: string) => {
     SGD: 'sg',
     JPY: 'jp',
     MYR: 'my',
-    SAR: 'sa',
+    CNY: 'cn',
     AUD: 'au'
   }
   return mapping[code] || 'un'

@@ -59,7 +59,7 @@ func fetchRatesFromAPI() (*models.RatesResponse, error) {
 	var apiResp FrankfurterResponse
 	resp, err := client.R().
 		SetResult(&apiResp).
-		Get("https://api.frankfurter.app/latest?from=IDR&to=USD,EUR,SGD,JPY,MYR,SAR,AUD")
+		Get("https://api.frankfurter.app/latest?from=IDR&to=USD,EUR,SGD,JPY,MYR,CNY,AUD")
 
 	if err != nil {
 		return nil, err

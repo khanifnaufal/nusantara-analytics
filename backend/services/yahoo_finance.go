@@ -9,6 +9,7 @@ type YahooFinanceResponse struct {
 				RegularMarketPrice         float64 `json:"regularMarketPrice"`
 				RegularMarketChange        float64 `json:"regularMarketChange"`
 				RegularMarketChangePercent float64 `json:"regularMarketChangePercent"`
+				ChartPreviousClose         float64 `json:"chartPreviousClose"`
 			} `json:"meta"`
 			Timestamp []int64 `json:"timestamp"`
 			Indicators struct {
