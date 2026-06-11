@@ -76,10 +76,10 @@ const getMagnitudeStyle = (magnitude: number) => {
 </script>
 
 <template>
-  <div class="widget-card">
+  <div class="widget-card flex flex-col h-full">
 
     <!-- Header -->
-    <div class="mb-6 mt-1 flex justify-between items-center">
+    <div class="mb-6 mt-1 flex justify-between items-center flex-none">
       <div>
         <h3 class="text-base font-bold text-text-primary flex items-center gap-2">
           <span class="text-rose-400">🌋</span> Gempa Bumi Terbaru
@@ -96,7 +96,7 @@ const getMagnitudeStyle = (magnitude: number) => {
     </div>
 
     <!-- Error State -->
-    <div v-if="quakesStore.error" class="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 mb-4 text-xs text-rose-400">
+    <div v-if="quakesStore.error" class="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 mb-4 text-xs text-rose-400 flex-none">
       <div class="flex items-center gap-2 font-semibold">
         <span>⚠️</span> Gagal memuat data gempa bumi
       </div>
@@ -104,9 +104,9 @@ const getMagnitudeStyle = (magnitude: number) => {
     </div>
 
     <!-- Quakes List Container -->
-    <div class="pr-1 select-none">
+    <div class="pr-1 select-none flex-1 min-h-0 flex flex-col">
       <!-- Loading Skeleton State -->
-      <div v-if="quakesStore.loading && (!quakesStore.data || !quakesStore.data.quakes)" class="space-y-2 animate-pulse">
+      <div v-if="quakesStore.loading && (!quakesStore.data || !quakesStore.data.quakes)" class="space-y-2 animate-pulse flex-1 overflow-y-auto">
         <div v-for="n in 5" :key="'skeleton-quake-'+n" class="flex items-center gap-4 p-4 rounded-xl border border-white/5 bg-bg-card">
           <div class="h-10 w-10 bg-white/5 rounded-lg"></div>
           <div class="flex-1 space-y-2">
@@ -118,12 +118,12 @@ const getMagnitudeStyle = (magnitude: number) => {
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="!quakesStore.data || !quakesStore.data.quakes || quakesStore.data.quakes.length === 0" class="py-12 text-center text-text-tertiary">
+      <div v-else-if="!quakesStore.data || !quakesStore.data.quakes || quakesStore.data.quakes.length === 0" class="py-12 text-center text-text-tertiary flex-none">
         Tidak ada aktivitas gempa bumi terbaru
       </div>
 
-      <!-- Quake List Items (scrollable viewport max-h-[400px]) -->
-      <div v-else class="max-h-[400px] overflow-y-auto scrollbar-thin pr-1.5 space-y-2">
+      <!-- Quake List Items (scrollable viewport) -->
+      <div v-else class="flex-1 min-h-0 max-h-[380px] lg:max-h-[500px] overflow-y-auto scrollbar-thin pr-1.5 space-y-2">
         <div
           v-for="quake in quakesStore.data.quakes"
           :key="quake.id"
