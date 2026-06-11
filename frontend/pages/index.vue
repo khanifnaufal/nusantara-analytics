@@ -124,7 +124,7 @@ const formattedLastUpdated = computed(() => {
         <div class="flex flex-wrap items-center gap-3 self-start sm:self-auto">
           <!-- Link to Dedicated Builder -->
           <NuxtLink
-            to="/builder"
+            to="/canvas"
             class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold rounded-xl border border-white/10 bg-transparent hover:border-white/20 text-zinc-400 hover:text-white transition-all shadow-sm"
           >
             <span>🎨</span> Custom Builder
