@@ -10,6 +10,7 @@ import { useMarketStore } from '~/stores/market'
 import { useQuakesStore } from '~/stores/quakes'
 import AddChartModal from '~/components/canvas/AddChartModal.vue'
 import CanvasChart from '~/components/canvas/CanvasChart.vue'
+import WidgetConfigPanel from '~/components/canvas/WidgetConfigPanel.vue'
 
 useHead({
   title: 'Nusantara Analytics - Custom Canvas'
@@ -31,6 +32,27 @@ const isModalOpen = ref(false)
 const isExporting = ref(false)
 const isConfigOpen = ref(false)
 
+// Active drag widget tracker
+const activeDragWidgetId = ref<string | null>(null)
+
+// 1-level deleted widget history for Ctrl+Z undo
+const lastDeletedWidget = ref<any | null>(null)
+
+const removeWidgetWithUndo = (id: string) => {
+  const widget = canvasStore.widgets.find(w => w.id === id)
+  if (widget) {
+    lastDeletedWidget.value = JSON.parse(JSON.stringify(widget))
+  }
+  canvasStore.removeWidget(id)
+}
+
+const undoLastDelete = () => {
+  if (lastDeletedWidget.value) {
+    canvasStore.addWidget(lastDeletedWidget.value)
+    lastDeletedWidget.value = null
+  }
+}
+
 // Inline title editing
 const editingWidgetId = ref<string | null>(null)
 const editingTitle = ref('')
@@ -39,9 +61,34 @@ const titleInputRefs = ref<Record<string, HTMLInputElement | null>>({})
 // Clipboard for sharing
 const { copy, copied } = useClipboard()
 
+// Keyboard shortcuts handler
+const handleKeyDown = (event: KeyboardEvent) => {
+  const target = event.target as HTMLElement
+  if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+    return
+  }
+
+  // Delete/Backspace: hapus widget yang sedang selected
+  if ((event.key === 'Delete' || event.key === 'Backspace') && canvasStore.selectedWidgetId) {
+    removeWidgetWithUndo(canvasStore.selectedWidgetId)
+  }
+
+  // Escape: deselect widget / tutup config panel
+  if (event.key === 'Escape') {
+    canvasStore.selectedWidgetId = null
+  }
+
+  // Ctrl+Z: undo hapus widget terakhir
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+    event.preventDefault()
+    undoLastDelete()
+  }
+}
+
 onMounted(async () => {
   if (typeof window !== 'undefined') {
     window.addEventListener('click', closeSidebarDropdowns)
+    window.addEventListener('keydown', handleKeyDown)
   }
 
   // Pre-fetch all data sources to ensure components render correctly
@@ -89,6 +136,7 @@ onMounted(async () => {
 onUnmounted(() => {
   if (typeof window !== 'undefined') {
     window.removeEventListener('click', closeSidebarDropdowns)
+    window.removeEventListener('keydown', handleKeyDown)
   }
 })
 
@@ -100,6 +148,7 @@ const startDrag = (event: PointerEvent, widget: any) => {
   if (editingWidgetId.value === widget.id) return
 
   canvasStore.selectedWidgetId = widget.id
+  activeDragWidgetId.value = widget.id
   
   const startX = event.clientX
   const startY = event.clientY
@@ -117,6 +166,7 @@ const startDrag = (event: PointerEvent, widget: any) => {
   }
   
   const onPointerUp = () => {
+    activeDragWidgetId.value = null
     window.removeEventListener('pointermove', onPointerMove)
     window.removeEventListener('pointerup', onPointerUp)
   }
@@ -260,8 +310,27 @@ const closeSidebarDropdowns = () => {
 <template>
   <div class="min-h-screen bg-[#0A0A0A] text-white flex">
     
+    <!-- MOBILE FALLBACK VIEW -->
+    <div class="md:hidden flex flex-col items-center justify-center min-h-screen w-full bg-[#0A0A0A] p-6 text-center select-none">
+      <div class="bg-zinc-900/30 border border-white/5 p-8 rounded-3xl max-w-sm flex flex-col items-center gap-4">
+        <span class="text-5xl">📊</span>
+        <div>
+          <h3 class="text-sm font-extrabold text-white">Canvas Builder Tidak Tersedia</h3>
+          <p class="text-xs text-text-secondary mt-2 px-4 leading-relaxed">
+            Canvas builder tersedia di desktop. Di mobile, gunakan dashboard utama.
+          </p>
+        </div>
+        <NuxtLink
+          to="/"
+          class="w-full py-2.5 px-5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition-all cursor-pointer shadow-md text-center"
+        >
+          Kembali ke Dashboard
+        </NuxtLink>
+      </div>
+    </div>
+
     <!-- SIDEBAR LEFT (280px, fixed) -->
-    <aside class="w-[280px] border-r border-white/5 bg-[#111111] h-screen fixed left-0 top-0 flex flex-col z-30 select-none">
+    <aside class="hidden md:flex w-[280px] border-r border-white/5 bg-[#111111] h-screen fixed left-0 top-0 flex-col z-30 select-none">
       
       <!-- Sidebar Header -->
       <div class="p-5 border-b border-white/5 flex items-center justify-between">
@@ -301,7 +370,7 @@ const closeSidebarDropdowns = () => {
           <div v-if="canvasStore.widgets.length === 0" class="text-center py-4 border border-dashed border-white/5 rounded-xl text-[10px] text-text-tertiary">
             Canvas kosong. Tambah widget untuk memulai.
           </div>
-          <div v-else class="space-y-1.5 max-h-[30vh] overflow-y-auto pr-1 scrollbar-thin">
+          <div v-else class="space-y-1.5 max-h-[45vh] overflow-y-auto pr-1 scrollbar-thin">
             <div
               v-for="w in canvasStore.widgets"
               :key="w.id"
@@ -318,112 +387,11 @@ const closeSidebarDropdowns = () => {
                 {{ w.title }}
               </span>
               <button
-                @click.stop="canvasStore.removeWidget(w.id)"
+                @click.stop="removeWidgetWithUndo(w.id)"
                 class="text-zinc-500 hover:text-red-400 font-bold leading-none p-0.5 rounded hover:bg-white/5"
               >
                 ×
               </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- SECTION 3: WIDGET CONFIGURATION PANEL (If selected) -->
-        <div v-if="selectedWidget" class="border-t border-white/5 pt-4 space-y-3">
-          <div class="flex items-center justify-between">
-            <h3 class="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Konfigurasi Widget</h3>
-            <button @click="canvasStore.selectedWidgetId = null" class="text-[10px] text-zinc-500 hover:text-white">Selesai</button>
-          </div>
-          
-          <div class="p-3 bg-[#161616] border border-white/5 rounded-xl space-y-3">
-            <div>
-              <label class="block text-[9px] font-bold text-text-tertiary uppercase tracking-wider mb-1">Judul</label>
-              <input
-                type="text"
-                v-model="selectedWidget.title"
-                class="w-full text-xs bg-zinc-900 border border-white/8 rounded px-2 py-1.5 focus:border-blue-500 focus:outline-none"
-              />
-            </div>
-
-            <div class="relative">
-              <label class="block text-[9px] font-bold text-text-tertiary uppercase tracking-wider mb-1">Tipe Grafik</label>
-              <button
-                type="button"
-                @click.stop="toggleSidebarDropdown('chartType')"
-                class="w-full flex items-center justify-between text-xs bg-zinc-900 border border-white/8 rounded px-2 py-1.5 focus:border-blue-500 focus:outline-none cursor-pointer text-left"
-              >
-                <span>
-                  {{ 
-                    selectedWidget.chartType === 'line' ? '📈 Line Chart' :
-                    selectedWidget.chartType === 'bar' ? '📊 Bar Chart' :
-                    selectedWidget.chartType === 'area' ? '🔷 Area Chart' :
-                    selectedWidget.chartType === 'donut' ? '🍩 Donut Chart' :
-                    selectedWidget.chartType === 'scatter' ? '⚫ Scatter Plot' :
-                    selectedWidget.chartType === 'gauge' ? '🌡 Gauge Chart' :
-                    selectedWidget.chartType === 'treemap' ? '🌳 Treemap' :
-                    selectedWidget.chartType === 'radar' ? '📻 Radar Chart' :
-                    selectedWidget.chartType === 'candlestick' ? '🕯 Candlestick' :
-                    '🔥 Heatmap'
-                  }}
-                </span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-zinc-400 transition-transform duration-200" :class="{ 'rotate-180': activeSidebarDropdown === 'chartType' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              <div
-                v-if="activeSidebarDropdown === 'chartType'"
-                class="absolute left-0 right-0 mt-1 z-50 max-h-48 overflow-y-auto rounded-lg border border-white/10 bg-zinc-900 shadow-xl py-1 scrollbar-thin"
-              >
-                <button
-                  v-for="opt in [
-                    { val: 'line', lbl: '📈 Line Chart' },
-                    { val: 'bar', lbl: '📊 Bar Chart' },
-                    { val: 'area', lbl: '🔷 Area Chart' },
-                    { val: 'donut', lbl: '🍩 Donut Chart' },
-                    { val: 'scatter', lbl: '⚫ Scatter Plot' },
-                    { val: 'gauge', lbl: '🌡 Gauge Chart' },
-                    { val: 'treemap', lbl: '🌳 Treemap' },
-                    { val: 'radar', lbl: '📻 Radar Chart' },
-                    { val: 'candlestick', lbl: '🕯 Candlestick' },
-                    { val: 'heatmap', lbl: '🔥 Heatmap' }
-                  ]"
-                  :key="opt.val"
-                  type="button"
-                  @click="selectedWidget.chartType = opt.val; closeSidebarDropdowns()"
-                  class="w-full text-left px-2 py-1.5 text-xs text-zinc-300 hover:text-white hover:bg-white/4 transition-colors flex items-center justify-between cursor-pointer"
-                >
-                  <span>{{ opt.lbl }}</span>
-                  <span v-if="selectedWidget.chartType === opt.val" class="text-blue-500 font-bold">✓</span>
-                </button>
-              </div>
-            </div>
-
-            <div class="relative">
-              <label class="block text-[9px] font-bold text-text-tertiary uppercase tracking-wider mb-1">Rentang Waktu</label>
-              <button
-                type="button"
-                @click.stop="toggleSidebarDropdown('range')"
-                class="w-full flex items-center justify-between text-xs bg-zinc-900 border border-white/8 rounded px-2 py-1.5 focus:border-blue-500 focus:outline-none cursor-pointer text-left"
-              >
-                <span>{{ selectedWidget.config.range }} Hari</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-zinc-400 transition-transform duration-200" :class="{ 'rotate-180': activeSidebarDropdown === 'range' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              <div
-                v-if="activeSidebarDropdown === 'range'"
-                class="absolute left-0 right-0 mt-1 z-50 max-h-48 overflow-y-auto rounded-lg border border-white/10 bg-zinc-900 shadow-xl py-1 scrollbar-thin"
-              >
-                <button
-                  v-for="r in [3, 7, 14, 30]"
-                  :key="r"
-                  type="button"
-                  @click="selectedWidget.config.range = r; closeSidebarDropdowns()"
-                  class="w-full text-left px-2 py-1.5 text-xs text-zinc-300 hover:text-white hover:bg-white/4 transition-colors flex items-center justify-between cursor-pointer"
-                >
-                  <span>{{ r }} Hari</span>
-                  <span v-if="selectedWidget.config.range === r" class="text-blue-500 font-bold">✓</span>
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -464,7 +432,7 @@ const closeSidebarDropdowns = () => {
     </aside>
 
     <!-- CANVAS WORKSPACE AREA (flex-1) -->
-    <main class="ml-[280px] flex-1 min-h-screen bg-[#0A0A0A] flex flex-col relative overflow-hidden">
+    <main class="hidden md:flex ml-[280px] flex-1 min-h-screen bg-[#0A0A0A] flex-col relative overflow-hidden">
       
       <!-- Backdrop Dot Grid Pattern -->
       <div 
@@ -485,29 +453,27 @@ const closeSidebarDropdowns = () => {
       <!-- Canvas container wrapper -->
       <div 
         id="analytics-canvas-area" 
-        class="flex-1 relative overflow-auto p-8 min-h-screen z-10 scrollbar-thin"
+        class="flex-1 relative overflow-auto p-8 min-h-screen z-10 scrollbar-thin cursor-default"
         :class="{ 'export-mode': isExporting }"
         @pointerdown="canvasStore.selectedWidgetId = null"
       >
         
-        <!-- Empty workspace illustration -->
+        <!-- Empty State Canvas -->
         <div 
           v-if="canvasStore.widgets.length === 0" 
-          class="absolute inset-0 flex flex-col items-center justify-center text-center p-8 select-none pointer-events-none"
+          class="absolute inset-0 flex flex-col items-center justify-center text-center p-8 select-none pointer-events-none z-10"
         >
-          <div class="bg-zinc-900/30 border border-white/5 p-8 rounded-3xl max-w-sm flex flex-col items-center gap-4">
-            <span class="text-4xl">🎨</span>
-            <div>
-              <h3 class="text-sm font-extrabold text-white">Canvas Workspace Kosong</h3>
-              <p class="text-xs text-text-secondary mt-1 px-4 leading-relaxed">
-                Tambahkan widget chart kustom baru untuk memantau data finansial, cuaca, bursa saham, komoditas, atau aktivitas seismik.
-              </p>
-            </div>
+          <div class="flex flex-col items-center max-w-sm">
+            <span class="text-6xl mb-4">📊</span>
+            <h3 class="text-lg font-bold text-white mb-2">Canvas Kosong</h3>
+            <p class="text-xs text-text-secondary mb-6 px-4 leading-relaxed">
+              Klik '+ Tambah Chart' untuk mulai membangun dashboard kustom
+            </p>
             <button
               @click.stop="isModalOpen = true"
-              class="pointer-events-auto py-2 px-5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition-all cursor-pointer shadow-md"
+              class="pointer-events-auto py-2.5 px-6 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition-all cursor-pointer shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20 active:scale-95"
             >
-              Tambah Widget Pertama
+              + Tambah Chart Pertama
             </button>
           </div>
         </div>
@@ -516,16 +482,17 @@ const closeSidebarDropdowns = () => {
         <div
           v-for="widget in canvasStore.widgets"
           :key="widget.id"
-          class="absolute widget-card-container transition-shadow duration-200"
+          class="absolute widget-card-container transition-all duration-150 ease-out"
           :class="[
-            canvasStore.selectedWidgetId === widget.id ? 'ring-2 ring-blue-500 shadow-2xl' : 'hover:shadow-lg',
+            canvasStore.selectedWidgetId === widget.id ? 'ring-2 ring-blue-500/50 ring-offset-2 ring-offset-[#0A0A0A]' : '',
+            activeDragWidgetId === widget.id ? 'opacity-90 shadow-2xl shadow-blue-500/10' : 'shadow-lg'
           ]"
           :style="{
             left: `${widget.position.x}px`,
             top: `${widget.position.y}px`,
             width: `${widget.size.w}px`,
             height: `${widget.size.h}px`,
-            zIndex: canvasStore.selectedWidgetId === widget.id ? 20 : 10
+            zIndex: activeDragWidgetId === widget.id ? 50 : (canvasStore.selectedWidgetId === widget.id ? 20 : 10)
           }"
           @pointerdown.stop="canvasStore.selectedWidgetId = widget.id"
         >
@@ -533,7 +500,10 @@ const closeSidebarDropdowns = () => {
             
             <!-- Header (Drag Handle) -->
             <div
-              class="drag-handle flex justify-between items-center px-4 py-3 border-b border-white/5 cursor-grab active:cursor-grabbing select-none"
+              class="drag-handle flex justify-between items-center px-4 py-3 border-b border-white/5 select-none"
+              :class="[
+                activeDragWidgetId === widget.id ? 'cursor-grabbing' : 'cursor-grab'
+              ]"
               @pointerdown.stop="startDrag($event, widget)"
             >
               <div class="flex items-center gap-2 min-w-0 flex-1">
@@ -569,7 +539,7 @@ const closeSidebarDropdowns = () => {
                   ⚙️
                 </button>
                 <button
-                  @click.stop="canvasStore.removeWidget(widget.id)"
+                  @click.stop="removeWidgetWithUndo(widget.id)"
                   class="p-1 text-zinc-500 hover:text-red-400 rounded hover:bg-white/5 transition-colors cursor-pointer font-bold text-sm leading-none"
                   title="Hapus"
                 >
@@ -598,6 +568,9 @@ const closeSidebarDropdowns = () => {
       </div>
 
     </main>
+
+    <!-- SLIDE-IN CONFIGURATION PANEL -->
+    <WidgetConfigPanel :is-open="canvasStore.selectedWidgetId !== null" />
 
     <!-- MULTI-STEP ADD CHART MODAL -->
     <AddChartModal

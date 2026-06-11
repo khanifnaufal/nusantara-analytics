@@ -189,8 +189,22 @@ const option = computed(() => {
   const config = props.widget.config || {}
   const range = config.range || 7
 
-  // Basic styling colors
-  const primaryBlue = '#3B82F6'
+  // Custom accent color preset resolution
+  const colorPresetMap: Record<string, string> = {
+    blue: '#3B82F6',
+    green: '#10B981',
+    red: '#EF4444',
+    amber: '#F59E0B',
+    violet: '#8B5CF6',
+    cyan: '#06B6D4'
+  }
+  const accentColorPreset = config.accentColor || 'blue'
+  const primaryBlue = colorPresetMap[accentColorPreset] || '#3B82F6'
+
+  // Visibility toggles
+  const showLabels = config.showLabels !== false
+  const showLegend = config.showLegend !== false
+
   const isDarkTheme = theme.value === 'dark'
   const labelColor = isDarkTheme ? '#A1A1AA' : '#52525B'
   const splitLineColor = isDarkTheme ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.05)'
@@ -199,13 +213,27 @@ const option = computed(() => {
   let chartOption: Record<string, any> = {
     backgroundColor: 'transparent',
     textStyle: { fontFamily: 'Inter, sans-serif' },
+    color: [
+      primaryBlue,
+      '#10B981',
+      '#F59E0B',
+      '#8B5CF6',
+      '#06B6D4',
+      '#EF4444',
+      '#EC4899'
+    ],
     tooltip: {
       trigger: 'axis',
       backgroundColor: isDarkTheme ? '#111111' : '#FFFFFF',
       borderColor: isDarkTheme ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
       textStyle: { color: isDarkTheme ? '#FFFFFF' : '#111111', fontSize: 11 }
     },
-    grid: { top: 30, right: 15, bottom: 35, left: 45, containLabel: true }
+    legend: {
+      show: showLegend,
+      textStyle: { color: labelColor, fontSize: 10 },
+      top: 5
+    },
+    grid: { top: showLegend ? 45 : 30, right: 15, bottom: 35, left: 45, containLabel: true }
   }
 
   // --- DATA EXTRACTION AND TRANSFORMATION ---
@@ -247,7 +275,7 @@ const option = computed(() => {
               { name: 'SGD', max: 13000 },
               { name: 'AUD', max: 12000 }
             ],
-            axisName: { color: labelColor, fontSize: 10 }
+            axisName: { show: showLabels, color: showLabels ? labelColor : 'transparent', fontSize: 10 }
           }
         } else if (type === 'gauge') {
           seriesData = [{ name: metric, value: Math.round(currentInIdr) }]
@@ -312,7 +340,7 @@ const option = computed(() => {
             { name: 'Kelembapan (%)', max: 100 },
             { name: 'Kec. Angin (km/h)', max: 50 }
           ],
-          axisName: { color: labelColor, fontSize: 10 }
+          axisName: { show: showLabels, color: showLabels ? labelColor : 'transparent', fontSize: 10 }
         }
       } else if (type === 'gauge') {
         const maxLimit = valField === 'temperature' ? 50 : valField === 'humidity' ? 100 : 80
@@ -466,17 +494,17 @@ const option = computed(() => {
           }
           chartOption.xAxis = {
             type: 'value',
-            name: 'Kedalaman (km)',
+            name: showLabels ? 'Kedalaman (km)' : '',
             nameGap: 20,
             nameLocation: 'middle',
-            nameTextStyle: { color: labelColor, fontSize: 10 },
-            axisLabel: { color: labelColor },
+            nameTextStyle: { color: showLabels ? labelColor : 'transparent', fontSize: 10 },
+            axisLabel: { show: showLabels, color: labelColor },
             splitLine: { lineStyle: { color: splitLineColor } }
           }
           chartOption.yAxis = {
             type: 'value',
-            name: 'Magnitudo',
-            axisLabel: { color: labelColor },
+            name: showLabels ? 'Magnitudo' : '',
+            axisLabel: { show: showLabels, color: labelColor },
             splitLine: { lineStyle: { color: splitLineColor } }
           }
           chartOption.series = [{
@@ -484,7 +512,7 @@ const option = computed(() => {
             symbolSize: (data: any) => data[1] * 2.5,
             data: quakes.map(q => [q.depth, q.magnitude, q.place]),
             itemStyle: {
-              color: '#3B82F6',
+              color: primaryBlue,
               opacity: 0.75,
               borderColor: 'rgba(255,255,255,0.1)',
               borderWidth: 1
@@ -512,7 +540,7 @@ const option = computed(() => {
     chartOption.xAxis = {
       type: 'category',
       data: xAxisData,
-      axisLabel: { color: labelColor, fontSize: 9, rotate: range > 10 ? 30 : 0 },
+      axisLabel: { show: showLabels, color: labelColor, fontSize: 9, rotate: range > 10 ? 30 : 0 },
       axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.08)' } },
       axisTick: { show: false }
     }
@@ -520,6 +548,7 @@ const option = computed(() => {
       type: 'value',
       scale: true,
       axisLabel: {
+        show: showLabels,
         color: labelColor,
         fontSize: 9,
         formatter: (v: number) => {
@@ -569,7 +598,7 @@ const option = computed(() => {
         borderWidth: 1
       },
       label: {
-        show: true,
+        show: showLabels,
         fontSize: 9,
         color: labelColor,
         formatter: '{b}'
@@ -588,7 +617,7 @@ const option = computed(() => {
       type: 'treemap',
       data: seriesData,
       breadcrumb: { show: false },
-      label: { show: true, fontSize: 10, formatter: '{b}\n{c}' },
+      label: { show: showLabels, fontSize: 10, formatter: '{b}\n{c}' },
       itemStyle: {
         borderColor: isDarkTheme ? '#111111' : '#FFFFFF',
         borderWidth: 1
@@ -597,6 +626,7 @@ const option = computed(() => {
   } else if (type === 'radar') {
     chartOption.tooltip = { trigger: 'item' }
     chartOption.legend = {
+      show: showLegend,
       data: legendData,
       bottom: 0,
       textStyle: { color: labelColor, fontSize: 9 }
