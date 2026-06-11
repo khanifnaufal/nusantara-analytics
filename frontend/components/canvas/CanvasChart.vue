@@ -81,7 +81,7 @@ const loading = computed(() => {
   }
 })
 
-// Determinstic hashing helper for data generation
+// Deterministic hashing helper for data generation
 const getHash = (str: string): number => {
   let hash = 0
   for (let i = 0; i < str.length; i++) {

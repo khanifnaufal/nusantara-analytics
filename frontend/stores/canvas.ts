@@ -11,9 +11,15 @@ export interface CanvasWidget {
   config: Record<string, any>
 }
 
+let localIdCounter = 0
+
 // Simple unique ID generator
 export function generateUniqueId(): string {
-  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+  if (typeof globalThis !== 'undefined' && globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function') {
+    return globalThis.crypto.randomUUID()
+  }
+  localIdCounter++
+  return `id-${localIdCounter}`
 }
 
 export const useCanvasStore = defineStore('canvas', {
@@ -68,8 +74,8 @@ export const useCanvasStore = defineStore('canvas', {
     exportToBase64(): string {
       try {
         const jsonStr = JSON.stringify(this.widgets)
-        // Use encodeURIComponent & unescape to handle UTF-8 / non-ASCII characters gracefully
-        return btoa(encodeURIComponent(jsonStr))
+        // Encode UTF-8 string to base64
+        return btoa(unescape(encodeURIComponent(jsonStr)))
       } catch (err) {
         console.error('Error encoding canvas to base64:', err)
         return ''
@@ -79,9 +85,22 @@ export const useCanvasStore = defineStore('canvas', {
     importFromBase64(str: string): boolean {
       if (!str) return false
       try {
-        const decodedStr = decodeURIComponent(atob(str))
+        const decodedStr = decodeURIComponent(escape(atob(str)))
         const parsed = JSON.parse(decodedStr)
-        if (Array.isArray(parsed)) {
+        
+        const isValidWidget = (obj: any): obj is CanvasWidget => {
+          return obj && 
+            typeof obj.id === 'string' &&
+            typeof obj.title === 'string' &&
+            ['rates', 'weather', 'commodities', 'market', 'quakes'].includes(obj.dataSource) &&
+            typeof obj.metric === 'string' &&
+            typeof obj.chartType === 'string' &&
+            obj.position && typeof obj.position.x === 'number' && typeof obj.position.y === 'number' &&
+            obj.size && typeof obj.size.w === 'number' && typeof obj.size.h === 'number' &&
+            typeof obj.config === 'object'
+        }
+
+        if (Array.isArray(parsed) && parsed.every(isValidWidget)) {
           this.widgets = parsed
           this.selectedWidgetId = null
           return true

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute, useRouter } from '#app'
 import { useDark, useClipboard } from '@vueuse/core'
 import { useCanvasStore } from '~/stores/canvas'
@@ -34,7 +34,7 @@ const isConfigOpen = ref(false)
 // Inline title editing
 const editingWidgetId = ref<string | null>(null)
 const editingTitle = ref('')
-const titleInputRef = ref<HTMLInputElement | null>(null)
+const titleInputRefs = ref<Record<string, HTMLInputElement | null>>({})
 
 // Clipboard for sharing
 const { copy, copied } = useClipboard()
@@ -161,9 +161,10 @@ const startTitleEdit = (widget: any) => {
   editingWidgetId.value = widget.id
   editingTitle.value = widget.title
   nextTick(() => {
-    if (titleInputRef.value) {
-      titleInputRef.value.focus()
-      titleInputRef.value.select()
+    const el = titleInputRefs.value[widget.id]
+    if (el) {
+      el.focus()
+      el.select()
     }
   })
 }
@@ -541,7 +542,7 @@ const closeSidebarDropdowns = () => {
                 <!-- Editable title wrapper -->
                 <input
                   v-if="editingWidgetId === widget.id"
-                  ref="titleInputRef"
+                  :ref="(el) => { if (el) titleInputRefs[widget.id] = el as HTMLInputElement }"
                   v-model="editingTitle"
                   class="bg-zinc-800 border border-blue-500/50 rounded px-1.5 py-0.5 text-xs text-white focus:outline-none w-full"
                   @blur="saveTitle(widget.id)"
