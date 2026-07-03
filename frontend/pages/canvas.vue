@@ -251,24 +251,61 @@ const shareCanvas = () => {
 const exportAsPng = async () => {
   const canvasEl = document.getElementById('analytics-canvas-area')
   if (!canvasEl) return
-  
+
   isExporting.value = true
   await nextTick()
-  await new Promise(r => setTimeout(r, 150)) // Wait for highlight frames to fade
-  
+  // Wait for selection rings / UI chrome to visually clear
+  await new Promise(r => setTimeout(r, 200))
+
   try {
-    const html2canvas = (await import('html2canvas')).default
-    const canvas = await html2canvas(canvasEl, {
-      backgroundColor: '#0A0A0A',
-      scale: 2, // 2x density
-      useCORS: true,
-      logging: false
+    const { toPng } = await import('html-to-image')
+
+    // Determine the actual bounding box of all widgets so we crop tightly
+    const widgetEls = canvasEl.querySelectorAll<HTMLElement>('.widget-card-container')
+    let minX = Infinity, minY = Infinity, maxX = 0, maxY = 0
+    widgetEls.forEach(el => {
+      const rect = el.getBoundingClientRect()
+      const parentRect = canvasEl.getBoundingClientRect()
+      const x = rect.left - parentRect.left + canvasEl.scrollLeft
+      const y = rect.top - parentRect.top + canvasEl.scrollTop
+      minX = Math.min(minX, x)
+      minY = Math.min(minY, y)
+      maxX = Math.max(maxX, x + rect.width)
+      maxY = Math.max(maxY, y + rect.height)
     })
-    
+
+    // Fall back to full area if no widgets found
+    const padding = 32
+    const hasWidgets = widgetEls.length > 0 && isFinite(minX)
+    const cropX = hasWidgets ? Math.max(0, minX - padding) : 0
+    const cropY = hasWidgets ? Math.max(0, minY - padding) : 0
+    const cropW = hasWidgets ? maxX - minX + padding * 2 : canvasEl.scrollWidth
+    const cropH = hasWidgets ? maxY - minY + padding * 2 : canvasEl.scrollHeight
+
+    const dataUrl = await toPng(canvasEl, {
+      backgroundColor: '#0A0A0A',
+      pixelRatio: 2,
+      width: cropW,
+      height: cropH,
+      style: {
+        transform: `translate(-${cropX}px, -${cropY}px)`,
+        transformOrigin: 'top left',
+        width: canvasEl.scrollWidth + 'px',
+        height: canvasEl.scrollHeight + 'px'
+      },
+      filter: (node: HTMLElement) => {
+        // Exclude UI-only chrome that shouldn't appear in the export
+        if (node.classList?.contains('resize-handle')) return false
+        if (node.classList?.contains('widget-actions')) return false
+        if (node.classList?.contains('edit-title-icon')) return false
+        return true
+      }
+    })
+
     const link = document.createElement('a')
     const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')
     link.download = `nusantara-canvas-${timestamp}.png`
-    link.href = canvas.toDataURL('image/png')
+    link.href = dataUrl
     link.click()
   } catch (err) {
     console.error('Error exporting canvas PNG:', err)

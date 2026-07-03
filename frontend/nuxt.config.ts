@@ -30,7 +30,8 @@ export default defineNuxtConfig({
         'echarts/components',
         'echarts/core',
         'echarts/renderers',
-        'vue-echarts'
+        'vue-echarts',
+        'html-to-image'
       ]
     }
   }
